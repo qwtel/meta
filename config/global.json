@@ -1,0 +1,11 @@
+{
+    "applications": {
+        "Meta": {
+            "applicationId": "dRPW23Cv2H5i4CNWwKnHKhQeVUYSaUL17NyyqMHW", 
+            "masterKey": "JcENVz8sa9EmD1Pc4QpdWGXh3kUM9CC7zlI8Swr4"
+        }, 
+        "_default": {
+            "link": "Meta"
+        }
+    }
+}
