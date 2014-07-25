@@ -1,21 +1,56 @@
+<!DOCTYPE html>
+<head>
+    <meta charset=utf-8>
+    <title>My Parse App</title>
+    <meta name=description content="My Parse App">
+    <meta name=viewport content="width=device-width">
+    <link rel=stylesheet href=css/reset.css>
+    <link rel=stylesheet href=css/styles.css>
+    <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://www.parsecdn.com/js/parse-1.2.19.min.js"></script>
+    <script type="text/javascript" src="bower_components/requirejs/require.js" data-main="js/build/require-config"></script>
+</head>
+<body>
+<button id=login>Login with Facebook</button>
+<div id=fb-root></div>
+<script type=text/javascript>
+    Parse.initialize("dRPW23Cv2H5i4CNWwKnHKhQeVUYSaUL17NyyqMHW", "m4FEYKBzAVFnt2JDO8EElO98QTDJ1yvViqhy9O2G");
 
-<html>
-  <head>
-    <title>My ParseApp site</title>
-    <style>
-    body { font-family: Helvetica, Arial, sans-serif; }
-    div { width: 800px; height: 400px; margin: 40px auto; padding: 20px; border: 2px solid #5298fc; }
-    h1 { font-size: 30px; margin: 0; }
-    p { margin: 40px 0; }
-    em { font-family: monospace; }
-    a { color: #5298fc; text-decoration: none; }
-    </style>
-  </head>
-  <body>
-    <div>
-      <h1>Congratulations! You're already hosting with Parse.</h1>
-      <p>To get started, edit this file at <em>public/index.html</em> and start adding static content.</p>
-      <p>If you want something a bit more dynamic, delete this file and check out <a href="https://parse.com/docs/hosting_guide#webapp">our hosting docs</a>.</p>
-    </div>
-  </body>
-</html>
+    window.fbAsyncInit = function () {
+        Parse.FacebookUtils.init({
+            appId: '262405373957288',
+            channelUrl: 'http://meta.parseapp.com/index.html', // Channel File
+            cookie: true,
+            xfbml: true
+        });
+    };
+
+    (function (d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) {
+            return;
+        }
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/all.js";
+        fjs.parentNode.insertBefore(js, fjs);
+    }(document, 'script', 'facebook-jssdk'));
+
+    document.getElementById("login").addEventListener("click", function () {
+        Parse.FacebookUtils.logIn(null, {
+            success: function (user) {
+                console.log(user);
+
+                if (!user.existed()) {
+                    alert("User signed up and logged in through Facebook!");
+                } else {
+                    alert("User logged in through Facebook!");
+                }
+            },
+            error: function (user, error) {
+                alert("User cancelled the Facebook login or did not fully authorize.");
+            }
+        });
+    });
+</script>
+</body>
