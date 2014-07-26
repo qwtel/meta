@@ -1,11 +1,11 @@
 /** @jsx React.DOM */
 define([
   'config/Config',
+  'view/AppView',
   'parse',
   'react',
-  'fastclick',
-  'view/AppView'
-], function (Config, Parse, React, FastClick, AppView) {
+  'fastclick'
+], function (Config, AppView, Parse, React, FastClick) {
   Parse.initialize(Config.Parse.AppId, Config.Parse.JavaScriptKey);
   React.initializeTouchEvents(true);
   

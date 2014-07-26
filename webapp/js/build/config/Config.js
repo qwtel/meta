@@ -7,7 +7,8 @@ define(function() {
       },
       Facebook: {
         AppId: "263236870540805"
-      }
+      },
+      HeartbeatInterval: 30000
     });
   }
   
@@ -18,6 +19,7 @@ define(function() {
     },
     Facebook: {
       AppId: "262405373957288"
-    }
+    },
+    HeartbeatInterval: 60000
   });
 });

@@ -1,12 +1,32 @@
 /** @jsx React.DOM */
 define([
   'service/UserService',
-  'view/PlayerView',
+  'view/component/PlayerView',
   'react',
-  'moment',
-  'parse'
+  'moment'
 ], function (UserService, PlayerView, React, Moment) {
   return React.createClass({
+    getInitialState: function () {
+      return {
+        level: '',
+        points: '',
+        ppg: '',
+        score: '',
+        rank: ''
+      };
+    },
+    
+    componentDidMount: function () {
+      var self = this;
+      UserService.currentStats()
+        .then(function (statSheet) {
+          self.setState(statSheet.attributes);
+        }, function(error) {
+          console.error("Couldn't load stat sheet", error);
+          // TODO: Popup
+        });
+    },
+    
     onSaveClicked: function () {
       var firstName = this.refs.name.getDOMNode().value;
       var about = this.refs.message.getDOMNode().value;
@@ -52,23 +72,23 @@ define([
             React.DOM.li({className: "table-view-cell table-view-divider"}), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Level"), 
-              React.DOM.span({className: "pull-right"}, "1")
+              React.DOM.span({className: "pull-right"}, this.state.level)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Points"), 
-              React.DOM.span({className: "pull-right"}, "0")
+              React.DOM.span({className: "pull-right"}, this.state.points)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Points per Game"), 
-              React.DOM.span({className: "pull-right"}, "0")
+              React.DOM.span({className: "pull-right"}, this.state.ppg)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Score"), 
-              React.DOM.span({className: "pull-right"}, "0")
+              React.DOM.span({className: "pull-right"}, this.state.score)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Rank"), 
-              React.DOM.span({className: "pull-right"}, '#0')
+              React.DOM.span({className: "pull-right"}, '#' + this.state.rank)
             ), 
             React.DOM.li({className: "table-view-cell table-view-divider"}), 
             React.DOM.li({className: "table-view-cell"}, 

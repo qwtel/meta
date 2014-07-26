@@ -4,9 +4,5 @@ define([
   function GameService() {
   }
 
-  GameService.current = function () {
-
-  };
-
   return GameService
 });

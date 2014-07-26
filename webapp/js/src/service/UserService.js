@@ -1,11 +1,18 @@
 define([
+  'config/Config',
+  'promise',
   'parse'
-], function (Parse) {
+], function (Config, Promise, Parse) {
   function UserService() {
   }
-
+  
   UserService.current = function () {
     return Parse.User.current()
+  };
+
+  UserService.currentStats = function () {
+    // TODO: Don't expose Parse.Promise
+    return Parse.User.current().get("statSheet").fetch()
   };
 
   UserService.logIn = function () {
@@ -29,7 +36,18 @@ define([
   };
 
   UserService.save = function (user) {
+    // TODO: Don't expose Parse.Promise
     return user.save()
+  };
+  
+  UserService.startHeartbeat = function () {
+    if (!UserService._heartbeat) {
+      console.log("Starting heartbeat...");
+      UserService._heartbeat = setInterval(function () {
+        console.log("hb");
+        Parse.User.current().save();
+      }, Config.HeartbeatInterval);
+    }
   };
 
   return UserService;

@@ -1,5 +1,5 @@
 define([
-  'view/HistoryGameMoveView',
+  'view/component/HistoryGameMoveView',
   'react'
 ], function (HistoryGameMoveView, React) {
   return React.createClass({

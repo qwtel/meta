@@ -1,21 +1,21 @@
 define([
-  'config/Ids',
+  'config/Config',
+  'view/AppView',
   'parse',
   'react',
-  'fastclick',
-  'view/AppView'
-], function (Ids, Parse, React, FastClick, AppView) {
-  Parse.initialize(Ids.Parse.AppId, Ids.Parse.JavaScriptKey);
+  'fastclick'
+], function (Config, AppView, Parse, React, FastClick) {
+  Parse.initialize(Config.Parse.AppId, Config.Parse.JavaScriptKey);
   React.initializeTouchEvents(true);
   
   function launch() {
     FastClick.attach(document.body);
     React.renderComponent(<AppView />, document.getElementById("app"));
   }
-
+  
   window.fbAsyncInit = function () {
     Parse.FacebookUtils.init({
-      appId: Ids.Facebook.AppId,
+      appId: Config.Facebook.AppId,
       channelUrl: 'http://meta.parseapp.com',
       cookie: true,
       xfbml: true

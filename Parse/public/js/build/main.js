@@ -40453,7 +40453,7 @@ define('view/AppView',[
       }
     },
 
-    loginWithFacebook: function () {
+    onLoginClicked: function () {
       var self = this;
       UserService.logIn()
         .then(function (user) {
@@ -40475,18 +40475,18 @@ define('view/AppView',[
 
     componentDidMount: function () {
       window.router = Router({
-        '': this.setPageR.bind(this, 'login'),
-        '/': this.setPageR.bind(this, 'login'),
-        'login': this.setPageR.bind(this, 'login'),
-        'play': this.setPageR.bind(this, 'play'),
-        'history': this.setPageR.bind(this, 'history'),
-        'profile': this.setPageR.bind(this, 'profile')
+        '': this.onRouteChanged.bind(this, 'login'),
+        '/': this.onRouteChanged.bind(this, 'login'),
+        'login': this.onRouteChanged.bind(this, 'login'),
+        'play': this.onRouteChanged.bind(this, 'play'),
+        'history': this.onRouteChanged.bind(this, 'history'),
+        'profile': this.onRouteChanged.bind(this, 'profile')
         // TODO: 404
       });
       window.router.init('/');
     },
 
-    setPageR: function (page) {
+    onRouteChanged: function (page) {
       if (!this.state.user) {
         window.router.setRoute('login');
         this.setPage('login');
@@ -40518,7 +40518,7 @@ define('view/AppView',[
               React.DOM.a({href: "http://www.gotinder.com/"}, "Tinder"), 
             "."), 
             React.DOM.p({className: "content-padded"}, 
-              React.DOM.button({className: "btn btn-primary btn-block", onClick: this.loginWithFacebook, style: {backgroundColor: "#4c69ba"}}, "Login with Facebook")
+              React.DOM.button({className: "btn btn-primary btn-block", onClick: this.onLoginClicked, style: {backgroundColor: "#4c69ba"}}, "Login with Facebook")
             )
           );
       } else if (this.state.page === 'profile') {
