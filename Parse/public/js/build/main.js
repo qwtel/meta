@@ -1,5 +1,5 @@
 
-define('config/Ids',[],function() {
+define('config/Config',[],function() {
   if (window.Debug) {
     return Object.freeze({
       Parse: {
@@ -8,7 +8,8 @@ define('config/Ids',[],function() {
       },
       Facebook: {
         AppId: "263236870540805"
-      }
+      },
+      HeartbeatInterval: 30000
     });
   }
   
@@ -19,7 +20,8 @@ define('config/Ids',[],function() {
     },
     Facebook: {
       AppId: "262405373957288"
-    }
+    },
+    HeartbeatInterval: 60000
   });
 });
 /*!
@@ -39363,14 +39365,707 @@ if (typeof define == 'function' && typeof define.amd == 'object' && define.amd) 
 	window.FastClick = FastClick;
 }
 ;
+(function() {
+var define, requireModule, require, requirejs;
+
+(function() {
+  var registry = {}, seen = {};
+
+  define = function(name, deps, callback) {
+    registry[name] = { deps: deps, callback: callback };
+  };
+
+  requirejs = require = requireModule = function(name) {
+  requirejs._eak_seen = registry;
+
+    if (seen[name]) { return seen[name]; }
+    seen[name] = {};
+
+    if (!registry[name]) {
+      throw new Error("Could not find module " + name);
+    }
+
+    var mod = registry[name],
+        deps = mod.deps,
+        callback = mod.callback,
+        reified = [],
+        exports;
+
+    for (var i=0, l=deps.length; i<l; i++) {
+      if (deps[i] === 'exports') {
+        reified.push(exports = {});
+      } else {
+        reified.push(requireModule(resolve(deps[i])));
+      }
+    }
+
+    var value = callback.apply(this, reified);
+    return seen[name] = exports || value;
+
+    function resolve(child) {
+      if (child.charAt(0) !== '.') { return child; }
+      var parts = child.split("/");
+      var parentBase = name.split("/").slice(0, -1);
+
+      for (var i=0, l=parts.length; i<l; i++) {
+        var part = parts[i];
+
+        if (part === '..') { parentBase.pop(); }
+        else if (part === '.') { continue; }
+        else { parentBase.push(part); }
+      }
+
+      return parentBase.join("/");
+    }
+  };
+})();
+
+define("promise/all", 
+  ["./utils","exports"],
+  function(__dependency1__, __exports__) {
+    
+    /* global toString */
+
+    var isArray = __dependency1__.isArray;
+    var isFunction = __dependency1__.isFunction;
+
+    /**
+      Returns a promise that is fulfilled when all the given promises have been
+      fulfilled, or rejected if any of them become rejected. The return promise
+      is fulfilled with an array that gives all the values in the order they were
+      passed in the `promises` array argument.
+
+      Example:
+
+      ```javascript
+      var promise1 = RSVP.resolve(1);
+      var promise2 = RSVP.resolve(2);
+      var promise3 = RSVP.resolve(3);
+      var promises = [ promise1, promise2, promise3 ];
+
+      RSVP.all(promises).then(function(array){
+        // The array here would be [ 1, 2, 3 ];
+      });
+      ```
+
+      If any of the `promises` given to `RSVP.all` are rejected, the first promise
+      that is rejected will be given as an argument to the returned promises's
+      rejection handler. For example:
+
+      Example:
+
+      ```javascript
+      var promise1 = RSVP.resolve(1);
+      var promise2 = RSVP.reject(new Error("2"));
+      var promise3 = RSVP.reject(new Error("3"));
+      var promises = [ promise1, promise2, promise3 ];
+
+      RSVP.all(promises).then(function(array){
+        // Code here never runs because there are rejected promises!
+      }, function(error) {
+        // error.message === "2"
+      });
+      ```
+
+      @method all
+      @for RSVP
+      @param {Array} promises
+      @param {String} label
+      @return {Promise} promise that is fulfilled when all `promises` have been
+      fulfilled, or rejected if any of them become rejected.
+    */
+    function all(promises) {
+      /*jshint validthis:true */
+      var Promise = this;
+
+      if (!isArray(promises)) {
+        throw new TypeError('You must pass an array to all.');
+      }
+
+      return new Promise(function(resolve, reject) {
+        var results = [], remaining = promises.length,
+        promise;
+
+        if (remaining === 0) {
+          resolve([]);
+        }
+
+        function resolver(index) {
+          return function(value) {
+            resolveAll(index, value);
+          };
+        }
+
+        function resolveAll(index, value) {
+          results[index] = value;
+          if (--remaining === 0) {
+            resolve(results);
+          }
+        }
+
+        for (var i = 0; i < promises.length; i++) {
+          promise = promises[i];
+
+          if (promise && isFunction(promise.then)) {
+            promise.then(resolver(i), reject);
+          } else {
+            resolveAll(i, promise);
+          }
+        }
+      });
+    }
+
+    __exports__.all = all;
+  });
+define("promise/asap", 
+  ["exports"],
+  function(__exports__) {
+    
+    var browserGlobal = (typeof window !== 'undefined') ? window : {};
+    var BrowserMutationObserver = browserGlobal.MutationObserver || browserGlobal.WebKitMutationObserver;
+    var local = (typeof global !== 'undefined') ? global : (this === undefined? window:this);
+
+    // node
+    function useNextTick() {
+      return function() {
+        process.nextTick(flush);
+      };
+    }
+
+    function useMutationObserver() {
+      var iterations = 0;
+      var observer = new BrowserMutationObserver(flush);
+      var node = document.createTextNode('');
+      observer.observe(node, { characterData: true });
+
+      return function() {
+        node.data = (iterations = ++iterations % 2);
+      };
+    }
+
+    function useSetTimeout() {
+      return function() {
+        local.setTimeout(flush, 1);
+      };
+    }
+
+    var queue = [];
+    function flush() {
+      for (var i = 0; i < queue.length; i++) {
+        var tuple = queue[i];
+        var callback = tuple[0], arg = tuple[1];
+        callback(arg);
+      }
+      queue = [];
+    }
+
+    var scheduleFlush;
+
+    // Decide what async method to use to triggering processing of queued callbacks:
+    if (typeof process !== 'undefined' && {}.toString.call(process) === '[object process]') {
+      scheduleFlush = useNextTick();
+    } else if (BrowserMutationObserver) {
+      scheduleFlush = useMutationObserver();
+    } else {
+      scheduleFlush = useSetTimeout();
+    }
+
+    function asap(callback, arg) {
+      var length = queue.push([callback, arg]);
+      if (length === 1) {
+        // If length is 1, that means that we need to schedule an async flush.
+        // If additional callbacks are queued before the queue is flushed, they
+        // will be processed by this flush that we are scheduling.
+        scheduleFlush();
+      }
+    }
+
+    __exports__.asap = asap;
+  });
+define("promise/config", 
+  ["exports"],
+  function(__exports__) {
+    
+    var config = {
+      instrument: false
+    };
+
+    function configure(name, value) {
+      if (arguments.length === 2) {
+        config[name] = value;
+      } else {
+        return config[name];
+      }
+    }
+
+    __exports__.config = config;
+    __exports__.configure = configure;
+  });
+define("promise/polyfill", 
+  ["./promise","./utils","exports"],
+  function(__dependency1__, __dependency2__, __exports__) {
+    
+    /*global self*/
+    var RSVPPromise = __dependency1__.Promise;
+    var isFunction = __dependency2__.isFunction;
+
+    function polyfill() {
+      var local;
+
+      if (typeof global !== 'undefined') {
+        local = global;
+      } else if (typeof window !== 'undefined' && window.document) {
+        local = window;
+      } else {
+        local = self;
+      }
+
+      var es6PromiseSupport = 
+        "Promise" in local &&
+        // Some of these methods are missing from
+        // Firefox/Chrome experimental implementations
+        "resolve" in local.Promise &&
+        "reject" in local.Promise &&
+        "all" in local.Promise &&
+        "race" in local.Promise &&
+        // Older version of the spec had a resolver object
+        // as the arg rather than a function
+        (function() {
+          var resolve;
+          new local.Promise(function(r) { resolve = r; });
+          return isFunction(resolve);
+        }());
+
+      if (!es6PromiseSupport) {
+        local.Promise = RSVPPromise;
+      }
+    }
+
+    __exports__.polyfill = polyfill;
+  });
+define("promise/promise", 
+  ["./config","./utils","./all","./race","./resolve","./reject","./asap","exports"],
+  function(__dependency1__, __dependency2__, __dependency3__, __dependency4__, __dependency5__, __dependency6__, __dependency7__, __exports__) {
+    
+    var config = __dependency1__.config;
+    var configure = __dependency1__.configure;
+    var objectOrFunction = __dependency2__.objectOrFunction;
+    var isFunction = __dependency2__.isFunction;
+    var now = __dependency2__.now;
+    var all = __dependency3__.all;
+    var race = __dependency4__.race;
+    var staticResolve = __dependency5__.resolve;
+    var staticReject = __dependency6__.reject;
+    var asap = __dependency7__.asap;
+
+    var counter = 0;
+
+    config.async = asap; // default async is asap;
+
+    function Promise(resolver) {
+      if (!isFunction(resolver)) {
+        throw new TypeError('You must pass a resolver function as the first argument to the promise constructor');
+      }
+
+      if (!(this instanceof Promise)) {
+        throw new TypeError("Failed to construct 'Promise': Please use the 'new' operator, this object constructor cannot be called as a function.");
+      }
+
+      this._subscribers = [];
+
+      invokeResolver(resolver, this);
+    }
+
+    function invokeResolver(resolver, promise) {
+      function resolvePromise(value) {
+        resolve(promise, value);
+      }
+
+      function rejectPromise(reason) {
+        reject(promise, reason);
+      }
+
+      try {
+        resolver(resolvePromise, rejectPromise);
+      } catch(e) {
+        rejectPromise(e);
+      }
+    }
+
+    function invokeCallback(settled, promise, callback, detail) {
+      var hasCallback = isFunction(callback),
+          value, error, succeeded, failed;
+
+      if (hasCallback) {
+        try {
+          value = callback(detail);
+          succeeded = true;
+        } catch(e) {
+          failed = true;
+          error = e;
+        }
+      } else {
+        value = detail;
+        succeeded = true;
+      }
+
+      if (handleThenable(promise, value)) {
+        return;
+      } else if (hasCallback && succeeded) {
+        resolve(promise, value);
+      } else if (failed) {
+        reject(promise, error);
+      } else if (settled === FULFILLED) {
+        resolve(promise, value);
+      } else if (settled === REJECTED) {
+        reject(promise, value);
+      }
+    }
+
+    var PENDING   = void 0;
+    var SEALED    = 0;
+    var FULFILLED = 1;
+    var REJECTED  = 2;
+
+    function subscribe(parent, child, onFulfillment, onRejection) {
+      var subscribers = parent._subscribers;
+      var length = subscribers.length;
+
+      subscribers[length] = child;
+      subscribers[length + FULFILLED] = onFulfillment;
+      subscribers[length + REJECTED]  = onRejection;
+    }
+
+    function publish(promise, settled) {
+      var child, callback, subscribers = promise._subscribers, detail = promise._detail;
+
+      for (var i = 0; i < subscribers.length; i += 3) {
+        child = subscribers[i];
+        callback = subscribers[i + settled];
+
+        invokeCallback(settled, child, callback, detail);
+      }
+
+      promise._subscribers = null;
+    }
+
+    Promise.prototype = {
+      constructor: Promise,
+
+      _state: undefined,
+      _detail: undefined,
+      _subscribers: undefined,
+
+      then: function(onFulfillment, onRejection) {
+        var promise = this;
+
+        var thenPromise = new this.constructor(function() {});
+
+        if (this._state) {
+          var callbacks = arguments;
+          config.async(function invokePromiseCallback() {
+            invokeCallback(promise._state, thenPromise, callbacks[promise._state - 1], promise._detail);
+          });
+        } else {
+          subscribe(this, thenPromise, onFulfillment, onRejection);
+        }
+
+        return thenPromise;
+      },
+
+      'catch': function(onRejection) {
+        return this.then(null, onRejection);
+      }
+    };
+
+    Promise.all = all;
+    Promise.race = race;
+    Promise.resolve = staticResolve;
+    Promise.reject = staticReject;
+
+    function handleThenable(promise, value) {
+      var then = null,
+      resolved;
+
+      try {
+        if (promise === value) {
+          throw new TypeError("A promises callback cannot return that same promise.");
+        }
+
+        if (objectOrFunction(value)) {
+          then = value.then;
+
+          if (isFunction(then)) {
+            then.call(value, function(val) {
+              if (resolved) { return true; }
+              resolved = true;
+
+              if (value !== val) {
+                resolve(promise, val);
+              } else {
+                fulfill(promise, val);
+              }
+            }, function(val) {
+              if (resolved) { return true; }
+              resolved = true;
+
+              reject(promise, val);
+            });
+
+            return true;
+          }
+        }
+      } catch (error) {
+        if (resolved) { return true; }
+        reject(promise, error);
+        return true;
+      }
+
+      return false;
+    }
+
+    function resolve(promise, value) {
+      if (promise === value) {
+        fulfill(promise, value);
+      } else if (!handleThenable(promise, value)) {
+        fulfill(promise, value);
+      }
+    }
+
+    function fulfill(promise, value) {
+      if (promise._state !== PENDING) { return; }
+      promise._state = SEALED;
+      promise._detail = value;
+
+      config.async(publishFulfillment, promise);
+    }
+
+    function reject(promise, reason) {
+      if (promise._state !== PENDING) { return; }
+      promise._state = SEALED;
+      promise._detail = reason;
+
+      config.async(publishRejection, promise);
+    }
+
+    function publishFulfillment(promise) {
+      publish(promise, promise._state = FULFILLED);
+    }
+
+    function publishRejection(promise) {
+      publish(promise, promise._state = REJECTED);
+    }
+
+    __exports__.Promise = Promise;
+  });
+define("promise/race", 
+  ["./utils","exports"],
+  function(__dependency1__, __exports__) {
+    
+    /* global toString */
+    var isArray = __dependency1__.isArray;
+
+    /**
+      `RSVP.race` allows you to watch a series of promises and act as soon as the
+      first promise given to the `promises` argument fulfills or rejects.
+
+      Example:
+
+      ```javascript
+      var promise1 = new RSVP.Promise(function(resolve, reject){
+        setTimeout(function(){
+          resolve("promise 1");
+        }, 200);
+      });
+
+      var promise2 = new RSVP.Promise(function(resolve, reject){
+        setTimeout(function(){
+          resolve("promise 2");
+        }, 100);
+      });
+
+      RSVP.race([promise1, promise2]).then(function(result){
+        // result === "promise 2" because it was resolved before promise1
+        // was resolved.
+      });
+      ```
+
+      `RSVP.race` is deterministic in that only the state of the first completed
+      promise matters. For example, even if other promises given to the `promises`
+      array argument are resolved, but the first completed promise has become
+      rejected before the other promises became fulfilled, the returned promise
+      will become rejected:
+
+      ```javascript
+      var promise1 = new RSVP.Promise(function(resolve, reject){
+        setTimeout(function(){
+          resolve("promise 1");
+        }, 200);
+      });
+
+      var promise2 = new RSVP.Promise(function(resolve, reject){
+        setTimeout(function(){
+          reject(new Error("promise 2"));
+        }, 100);
+      });
+
+      RSVP.race([promise1, promise2]).then(function(result){
+        // Code here never runs because there are rejected promises!
+      }, function(reason){
+        // reason.message === "promise2" because promise 2 became rejected before
+        // promise 1 became fulfilled
+      });
+      ```
+
+      @method race
+      @for RSVP
+      @param {Array} promises array of promises to observe
+      @param {String} label optional string for describing the promise returned.
+      Useful for tooling.
+      @return {Promise} a promise that becomes fulfilled with the value the first
+      completed promises is resolved with if the first completed promise was
+      fulfilled, or rejected with the reason that the first completed promise
+      was rejected with.
+    */
+    function race(promises) {
+      /*jshint validthis:true */
+      var Promise = this;
+
+      if (!isArray(promises)) {
+        throw new TypeError('You must pass an array to race.');
+      }
+      return new Promise(function(resolve, reject) {
+        var results = [], promise;
+
+        for (var i = 0; i < promises.length; i++) {
+          promise = promises[i];
+
+          if (promise && typeof promise.then === 'function') {
+            promise.then(resolve, reject);
+          } else {
+            resolve(promise);
+          }
+        }
+      });
+    }
+
+    __exports__.race = race;
+  });
+define("promise/reject", 
+  ["exports"],
+  function(__exports__) {
+    
+    /**
+      `RSVP.reject` returns a promise that will become rejected with the passed
+      `reason`. `RSVP.reject` is essentially shorthand for the following:
+
+      ```javascript
+      var promise = new RSVP.Promise(function(resolve, reject){
+        reject(new Error('WHOOPS'));
+      });
+
+      promise.then(function(value){
+        // Code here doesn't run because the promise is rejected!
+      }, function(reason){
+        // reason.message === 'WHOOPS'
+      });
+      ```
+
+      Instead of writing the above, your code now simply becomes the following:
+
+      ```javascript
+      var promise = RSVP.reject(new Error('WHOOPS'));
+
+      promise.then(function(value){
+        // Code here doesn't run because the promise is rejected!
+      }, function(reason){
+        // reason.message === 'WHOOPS'
+      });
+      ```
+
+      @method reject
+      @for RSVP
+      @param {Any} reason value that the returned promise will be rejected with.
+      @param {String} label optional string for identifying the returned promise.
+      Useful for tooling.
+      @return {Promise} a promise that will become rejected with the given
+      `reason`.
+    */
+    function reject(reason) {
+      /*jshint validthis:true */
+      var Promise = this;
+
+      return new Promise(function (resolve, reject) {
+        reject(reason);
+      });
+    }
+
+    __exports__.reject = reject;
+  });
+define("promise/resolve", 
+  ["exports"],
+  function(__exports__) {
+    
+    function resolve(value) {
+      /*jshint validthis:true */
+      if (value && typeof value === 'object' && value.constructor === this) {
+        return value;
+      }
+
+      var Promise = this;
+
+      return new Promise(function(resolve) {
+        resolve(value);
+      });
+    }
+
+    __exports__.resolve = resolve;
+  });
+define("promise/utils", 
+  ["exports"],
+  function(__exports__) {
+    
+    function objectOrFunction(x) {
+      return isFunction(x) || (typeof x === "object" && x !== null);
+    }
+
+    function isFunction(x) {
+      return typeof x === "function";
+    }
+
+    function isArray(x) {
+      return Object.prototype.toString.call(x) === "[object Array]";
+    }
+
+    // Date.now is not available in browsers < IE9
+    // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/now#Compatibility
+    var now = Date.now || function() { return new Date().getTime(); };
+
+
+    __exports__.objectOrFunction = objectOrFunction;
+    __exports__.isFunction = isFunction;
+    __exports__.isArray = isArray;
+    __exports__.now = now;
+  });
+requireModule('promise/polyfill').polyfill();
+}());
+define("promise", function(){});
+
 define('service/UserService',[
+  'config/Config',
+  'promise',
   'parse'
-], function (Parse) {
+], function (Config, Promise, Parse) {
   function UserService() {
   }
-
+  
   UserService.current = function () {
     return Parse.User.current()
+  };
+
+  UserService.currentStats = function () {
+    // TODO: Don't expose Parse.Promise
+    return Parse.User.current().get("statSheet").fetch()
   };
 
   UserService.logIn = function () {
@@ -39394,15 +40089,27 @@ define('service/UserService',[
   };
 
   UserService.save = function (user) {
+    // TODO: Don't expose Parse.Promise
     return user.save()
+  };
+  
+  UserService.startHeartbeat = function () {
+    if (!UserService._heartbeat) {
+      console.log("Starting heartbeat...");
+      UserService._heartbeat = setInterval(function () {
+        console.log("hb");
+        Parse.User.current().save();
+      }, Config.HeartbeatInterval);
+    }
   };
 
   return UserService;
 });
 
 define('service/FacebookService',[
-  'service/UserService'
-], function (UserService) {
+  'service/UserService',
+  'promise'
+], function (UserService, Promise) {
   function FacebookService() {
   }
 
@@ -39467,24 +40174,38 @@ define('service/FacebookService',[
 });
 
 /** @jsx React.DOM */
-define('view/PlayerView',[
+define('view/component/PlayerView',[
   'react'
 ], function (React) {
   return React.createClass({
+    getInitialState: function () {
+      return {
+        level: '',
+        rank: ''
+      }
+    },
+    
+    componentDidMount: function () {
+      var self = this;
+      this.props.user.get('statSheet').fetch().then(function (statSheet) {
+        self.setState(statSheet.attributes);
+      });
+    },
+    
     render: function () {
       var user = this.props.user.toJSON();
 
-      var comp =
+      var playerView =
         React.DOM.div({className: "other"}, 
           React.DOM.div({className: "banner", style: {backgroundImage: "url(" + user.bannerUrl + ")"}}), 
           React.DOM.div({className: "shield"}), 
           React.DOM.div({className: "profilepic"}, 
             React.DOM.img({src: user.pictureUrl}), 
             React.DOM.div({className: "level dot-pos"}, 
-              React.DOM.span({className: "dot"}, "1")
+              React.DOM.span({className: "dot"}, this.state.level)
             ), 
             React.DOM.div({className: "rank dot-pos"}, 
-              React.DOM.span({className: "dot"}, '#', "0")
+              React.DOM.span({className: "dot"}, '#' + this.state.rank)
             ), 
             React.DOM.div({className: "lastmoves"}, 
               React.DOM.div({className: "move co"}), 
@@ -39504,7 +40225,8 @@ define('view/PlayerView',[
             )
           )
         );
-      return comp;
+      
+      return playerView;
     }
   });
 });
@@ -39518,12 +40240,32 @@ define('view/PlayerView',[
 /** @jsx React.DOM */
 define('view/page/ProfilePage',[
   'service/UserService',
-  'view/PlayerView',
+  'view/component/PlayerView',
   'react',
-  'moment',
-  'parse'
+  'moment'
 ], function (UserService, PlayerView, React, Moment) {
   return React.createClass({
+    getInitialState: function () {
+      return {
+        level: '',
+        points: '',
+        ppg: '',
+        score: '',
+        rank: ''
+      };
+    },
+    
+    componentDidMount: function () {
+      var self = this;
+      UserService.currentStats()
+        .then(function (statSheet) {
+          self.setState(statSheet.attributes);
+        }, function(error) {
+          console.error("Couldn't load stat sheet", error);
+          // TODO: Popup
+        });
+    },
+    
     onSaveClicked: function () {
       var firstName = this.refs.name.getDOMNode().value;
       var about = this.refs.message.getDOMNode().value;
@@ -39569,23 +40311,23 @@ define('view/page/ProfilePage',[
             React.DOM.li({className: "table-view-cell table-view-divider"}), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Level"), 
-              React.DOM.span({className: "pull-right"}, "1")
+              React.DOM.span({className: "pull-right"}, this.state.level)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Points"), 
-              React.DOM.span({className: "pull-right"}, "0")
+              React.DOM.span({className: "pull-right"}, this.state.points)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Points per Game"), 
-              React.DOM.span({className: "pull-right"}, "0")
+              React.DOM.span({className: "pull-right"}, this.state.ppg)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Score"), 
-              React.DOM.span({className: "pull-right"}, "0")
+              React.DOM.span({className: "pull-right"}, this.state.score)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Rank"), 
-              React.DOM.span({className: "pull-right"}, '#0')
+              React.DOM.span({className: "pull-right"}, '#' + this.state.rank)
             ), 
             React.DOM.li({className: "table-view-cell table-view-divider"}), 
             React.DOM.li({className: "table-view-cell"}, 
@@ -39610,7 +40352,93 @@ define('view/page/ProfilePage',[
 });
 
 /** @jsx React.DOM */
-define('view/NavBarView',[
+define('view/component/HistoryGameMoveView',[
+  'react'
+], function (React) {
+  return React.createClass({
+    render: function () {
+      var move =
+          React.DOM.div({className: "move"}, 
+            React.DOM.img({className: "profilepic", src: "https://graph.facebook.com/me/picture"}), 
+            React.DOM.div({className: "name btn-negative"}, "De")
+          );
+      return move;
+    }
+  });
+});
+
+/** @jsx React.DOM */
+define('view/component/HistoryGameView',[
+  'view/component/HistoryGameMoveView',
+  'react'
+], function (HistoryGameMoveView, React) {
+  return React.createClass({
+    render: function () {
+      var game =
+          React.DOM.li({className: "table-view-cell game"}, 
+            HistoryGameMoveView(null), 
+            React.DOM.p({className: "result"}, '>'), 
+            HistoryGameMoveView(null), 
+            React.DOM.p({className: "points"}, '+2')
+          );
+
+      return game;
+    }
+  });
+});
+
+/** @jsx React.DOM */
+define('view/page/HistoryPage',[
+  'service/UserService',
+  'view/component/HistoryGameView',
+  'react'
+], function (UserService, HistoryGameView, React) {
+  return React.createClass({
+    render: function () {
+      var historyPage =
+        React.DOM.div({className: "content"}, 
+          React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
+            React.DOM.li({className: "table-view-divider"}, "Today"), 
+            HistoryGameView(null), 
+            HistoryGameView(null), 
+            React.DOM.li({className: "table-view-divider"}, "Yesterday"), 
+            HistoryGameView(null), 
+            HistoryGameView(null), 
+            HistoryGameView(null), 
+            HistoryGameView(null), 
+            HistoryGameView(null)
+          )
+        );
+
+      return historyPage;
+    }
+  });
+});
+
+/** @jsx React.DOM */
+define('view/page/PlayPage',[
+  'service/UserService',
+  'view/component/PlayerView',
+  'react'
+], function (UserService, PlayerView, React) {
+  return React.createClass({
+    render: function () {
+      var plagePage =
+        React.DOM.div({className: "content"}, 
+          PlayerView({user: this.props.user}), 
+          React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
+            React.DOM.button({className: "btn btn-positive btn-block"}, "Cooperate"), 
+            React.DOM.button({className: "btn btn-primary btn-block"}, "Pass"), 
+            React.DOM.button({className: "btn btn-negative btn-block"}, "Defect")
+          )
+        );
+      return plagePage;
+    }
+  });
+});
+
+/** @jsx React.DOM */
+define('view/component/NavBarView',[
   'react'
 ], function (React) {
   return React.createClass({
@@ -39668,42 +40496,6 @@ define('view/NavBarView',[
           );
 
       return header;
-    }
-  });
-});
-
-/** @jsx React.DOM */
-define('view/HistoryGameMoveView',[
-  'react'
-], function (React) {
-  return React.createClass({
-    render: function () {
-      var move =
-          React.DOM.div({className: "move"}, 
-            React.DOM.img({className: "profilepic", src: "https://graph.facebook.com/me/picture"}), 
-            React.DOM.div({className: "name btn-negative"}, "De")
-          );
-      return move;
-    }
-  });
-});
-
-/** @jsx React.DOM */
-define('view/HistoryGameView',[
-  'view/HistoryGameMoveView',
-  'react'
-], function (HistoryGameMoveView, React) {
-  return React.createClass({
-    render: function () {
-      var game =
-          React.DOM.li({className: "table-view-cell game"}, 
-            HistoryGameMoveView(null), 
-            React.DOM.p({className: "result"}, '>'), 
-            HistoryGameMoveView(null), 
-            React.DOM.p({className: "points"}, '+2')
-          );
-
-      return game;
     }
   });
 });
@@ -40439,12 +41231,12 @@ define('view/AppView',[
   'service/UserService',
   'service/FacebookService',
   'view/page/ProfilePage',
-  'view/NavBarView',
-  'view/PlayerView',
-  'view/HistoryGameView',
+  'view/page/HistoryPage',
+  'view/page/PlayPage',
+  'view/component/NavBarView',
   'react',
   'director'
-], function (UserService, FacebookService, ProfilePage, NavBarView, PlayerView, HistoryGameView, React, Router) {
+], function (UserService, FacebookService, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
   return React.createClass({
     getInitialState: function () {
       return {
@@ -40453,27 +41245,12 @@ define('view/AppView',[
       }
     },
 
-    onLoginClicked: function () {
-      var self = this;
-      UserService.logIn()
-        .then(function (user) {
-          self.state.user = user;
-          if (!user.existed()) {
-            console.log("User signed up and logged in through Facebook!");
-            self.setPage('profile');
-            FacebookService.fetch()
-          } else {
-            console.log("User logged in through Facebook!");
-            self.setPage('play');
-          }
-        })
-        .catch(function (error, user) {
-          // TODO: popup
-          console.log("User cancelled the Facebook login or did not fully authorize.", error, user);
-        });
+    componentDidMount: function () {
+      this.initRouter();
+      this.initHeartbeat();
     },
 
-    componentDidMount: function () {
+    initRouter: function () {
       window.router = Router({
         '': this.onRouteChanged.bind(this, 'login'),
         '/': this.onRouteChanged.bind(this, 'login'),
@@ -40484,6 +41261,10 @@ define('view/AppView',[
         // TODO: 404
       });
       window.router.init('/');
+    },
+
+    initHeartbeat: function () {
+      UserService.startHeartbeat();
     },
 
     onRouteChanged: function (page) {
@@ -40506,1027 +41287,44 @@ define('view/AppView',[
 
       var page;
       if (this.state.page === 'login') {
-        page =
-          React.DOM.div({className: "content"}, 
-            React.DOM.p({className: "content-padded"}, 
-            "Meta is a insanely simple mutliplayer game that is loosely based on the", 
-                ' ', 
-              React.DOM.a({href: "http://en.wikipedia.org/wiki/Prisoner's_dilemma"}, "Prisoner's Dilemma"), 
-                ', ', 
-              React.DOM.a({href: "http://en.wikipedia.org/wiki/Rock-paper-scissors"}, "Rock-Paper-Scissors"), 
-                ' and (uhm..) ', 
-              React.DOM.a({href: "http://www.gotinder.com/"}, "Tinder"), 
-            "."), 
-            React.DOM.p({className: "content-padded"}, 
-              React.DOM.button({className: "btn btn-primary btn-block", onClick: this.onLoginClicked, style: {backgroundColor: "#4c69ba"}}, "Login with Facebook")
-            )
-          );
+        page = LoginPage(null);
       } else if (this.state.page === 'profile') {
-        page = ProfilePage({user: this.state.user})
+        page = ProfilePage({user: this.state.user});
       } else if (this.state.page === 'history') {
-        page =
-          React.DOM.div({className: "content"}, 
-            React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
-              React.DOM.li({className: "table-view-divider"}, "Today"), 
-              HistoryGameView(null), 
-              HistoryGameView(null), 
-              React.DOM.li({className: "table-view-divider"}, "Yesterday"), 
-              HistoryGameView(null), 
-              HistoryGameView(null), 
-              HistoryGameView(null), 
-              HistoryGameView(null), 
-              HistoryGameView(null)
-            )
-          )
+        page = HistoryPage({user: this.state.user});
       } else if (this.state.page === 'play') {
-        page =
-          React.DOM.div({className: "content"}, 
-            PlayerView({user: this.state.user}), 
-            React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
-              React.DOM.button({className: "btn btn-positive btn-block"}, "Cooperate"), 
-              React.DOM.button({className: "btn btn-primary btn-block"}, "Pass"), 
-              React.DOM.button({className: "btn btn-negative btn-block"}, "Defect")
-            )
-          );
+        page = PlayPage({user: this.state.user});
       }
 
       return (
         React.DOM.div(null, 
           NavBarView({page: this.state.page, newHistory: 2}), 
-            page
+          page
         )
         );
     }
   })
 });
 
-/*!
- * =====================================================
- * Ratchet v2.0.2 (http://goratchet.com)
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- *
- * v2.0.2 designed by @connors.
- * =====================================================
- */
-/* ========================================================================
- * Ratchet: modals.js v2.0.2
- * http://goratchet.com/components#modals
- * ========================================================================
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- * ======================================================================== */
-
-!(function () {
-  
-
-  var findModals = function (target) {
-    var i;
-    var modals = document.querySelectorAll('a');
-
-    for (; target && target !== document; target = target.parentNode) {
-      for (i = modals.length; i--;) {
-        if (modals[i] === target) {
-          return target;
-        }
-      }
-    }
-  };
-
-  var getModal = function (event) {
-    var modalToggle = findModals(event.target);
-    if (modalToggle && modalToggle.hash) {
-      return document.querySelector(modalToggle.hash);
-    }
-  };
-
-  window.addEventListener('touchend', function (event) {
-    var modal = getModal(event);
-    if (modal) {
-      if (modal && modal.classList.contains('modal')) {
-        modal.classList.toggle('active');
-      }
-      event.preventDefault(); // prevents rewriting url (apps can still use hash values in url)
-    }
-  });
-}());
-
-/* ========================================================================
- * Ratchet: popovers.js v2.0.2
- * http://goratchet.com/components#popovers
- * ========================================================================
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- * ======================================================================== */
-
-!(function () {
-  
-
-  var popover;
-
-  var findPopovers = function (target) {
-    var i;
-    var popovers = document.querySelectorAll('a');
-
-    for (; target && target !== document; target = target.parentNode) {
-      for (i = popovers.length; i--;) {
-        if (popovers[i] === target) {
-          return target;
-        }
-      }
-    }
-  };
-
-  var onPopoverHidden = function () {
-    popover.style.display = 'none';
-    popover.removeEventListener('webkitTransitionEnd', onPopoverHidden);
-  };
-
-  var backdrop = (function () {
-    var element = document.createElement('div');
-
-    element.classList.add('backdrop');
-
-    element.addEventListener('touchend', function () {
-      popover.addEventListener('webkitTransitionEnd', onPopoverHidden);
-      popover.classList.remove('visible');
-      popover.parentNode.removeChild(backdrop);
-    });
-
-    return element;
-  }());
-
-  var getPopover = function (e) {
-    var anchor = findPopovers(e.target);
-
-    if (!anchor || !anchor.hash || (anchor.hash.indexOf('/') > 0)) {
-      return;
-    }
-
-    try {
-      popover = document.querySelector(anchor.hash);
-    }
-    catch (error) {
-      popover = null;
-    }
-
-    if (popover === null) {
-      return;
-    }
-
-    if (!popover || !popover.classList.contains('popover')) {
-      return;
-    }
-
-    return popover;
-  };
-
-  var showHidePopover = function (e) {
-    var popover = getPopover(e);
-
-    if (!popover) {
-      return;
-    }
-
-    popover.style.display = 'block';
-    popover.offsetHeight;
-    popover.classList.add('visible');
-
-    popover.parentNode.appendChild(backdrop);
-  };
-
-  window.addEventListener('touchend', showHidePopover);
-
-}());
-
-/* ========================================================================
- * Ratchet: push.js v2.0.2
- * http://goratchet.com/components#push
- * ========================================================================
- * inspired by @defunkt's jquery.pjax.js
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- * ======================================================================== */
-
-/* global _gaq: true */
-
-!(function () {
-  
-
-  var noop = function () {};
-
-
-  // Pushstate caching
-  // ==================
-
-  var isScrolling;
-  var maxCacheLength = 20;
-  var cacheMapping   = sessionStorage;
-  var domCache       = {};
-  var transitionMap  = {
-    slideIn  : 'slide-out',
-    slideOut : 'slide-in',
-    fade     : 'fade'
-  };
-
-  var bars = {
-    bartab             : '.bar-tab',
-    barnav             : '.bar-nav',
-    barfooter          : '.bar-footer',
-    barheadersecondary : '.bar-header-secondary'
-  };
-
-  var cacheReplace = function (data, updates) {
-    PUSH.id = data.id;
-    if (updates) {
-      data = getCached(data.id);
-    }
-    cacheMapping[data.id] = JSON.stringify(data);
-    window.history.replaceState(data.id, data.title, data.url);
-    domCache[data.id] = document.body.cloneNode(true);
-  };
-
-  var cachePush = function () {
-    var id = PUSH.id;
-
-    var cacheForwardStack = JSON.parse(cacheMapping.cacheForwardStack || '[]');
-    var cacheBackStack    = JSON.parse(cacheMapping.cacheBackStack    || '[]');
-
-    cacheBackStack.push(id);
-
-    while (cacheForwardStack.length) {
-      delete cacheMapping[cacheForwardStack.shift()];
-    }
-    while (cacheBackStack.length > maxCacheLength) {
-      delete cacheMapping[cacheBackStack.shift()];
-    }
-
-    window.history.pushState(null, '', cacheMapping[PUSH.id].url);
-
-    cacheMapping.cacheForwardStack = JSON.stringify(cacheForwardStack);
-    cacheMapping.cacheBackStack    = JSON.stringify(cacheBackStack);
-  };
-
-  var cachePop = function (id, direction) {
-    var forward           = direction === 'forward';
-    var cacheForwardStack = JSON.parse(cacheMapping.cacheForwardStack || '[]');
-    var cacheBackStack    = JSON.parse(cacheMapping.cacheBackStack    || '[]');
-    var pushStack         = forward ? cacheBackStack    : cacheForwardStack;
-    var popStack          = forward ? cacheForwardStack : cacheBackStack;
-
-    if (PUSH.id) {
-      pushStack.push(PUSH.id);
-    }
-    popStack.pop();
-
-    cacheMapping.cacheForwardStack = JSON.stringify(cacheForwardStack);
-    cacheMapping.cacheBackStack    = JSON.stringify(cacheBackStack);
-  };
-
-  var getCached = function (id) {
-    return JSON.parse(cacheMapping[id] || null) || {};
-  };
-
-  var getTarget = function (e) {
-    var target = findTarget(e.target);
-
-    if (!target ||
-        e.which > 1 ||
-        e.metaKey ||
-        e.ctrlKey ||
-        isScrolling ||
-        location.protocol !== target.protocol ||
-        location.host     !== target.host ||
-        !target.hash && /#/.test(target.href) ||
-        target.hash && target.href.replace(target.hash, '') === location.href.replace(location.hash, '') ||
-        target.getAttribute('data-ignore') === 'push') { return; }
-
-    return target;
-  };
-
-
-  // Main event handlers (touchend, popstate)
-  // ==========================================
-
-  var touchend = function (e) {
-    var target = getTarget(e);
-
-    if (!target) {
-      return;
-    }
-
-    e.preventDefault();
-
-    PUSH({
-      url        : target.href,
-      hash       : target.hash,
-      timeout    : target.getAttribute('data-timeout'),
-      transition : target.getAttribute('data-transition')
-    });
-  };
-
-  var popstate = function (e) {
-    var key;
-    var barElement;
-    var activeObj;
-    var activeDom;
-    var direction;
-    var transition;
-    var transitionFrom;
-    var transitionFromObj;
-    var id = e.state;
-
-    if (!id || !cacheMapping[id]) {
-      return;
-    }
-
-    direction = PUSH.id < id ? 'forward' : 'back';
-
-    cachePop(id, direction);
-
-    activeObj = getCached(id);
-    activeDom = domCache[id];
-
-    if (activeObj.title) {
-      document.title = activeObj.title;
-    }
-
-    if (direction === 'back') {
-      transitionFrom    = JSON.parse(direction === 'back' ? cacheMapping.cacheForwardStack : cacheMapping.cacheBackStack);
-      transitionFromObj = getCached(transitionFrom[transitionFrom.length - 1]);
-    } else {
-      transitionFromObj = activeObj;
-    }
-
-    if (direction === 'back' && !transitionFromObj.id) {
-      return (PUSH.id = id);
-    }
-
-    transition = direction === 'back' ? transitionMap[transitionFromObj.transition] : transitionFromObj.transition;
-
-    if (!activeDom) {
-      return PUSH({
-        id         : activeObj.id,
-        url        : activeObj.url,
-        title      : activeObj.title,
-        timeout    : activeObj.timeout,
-        transition : transition,
-        ignorePush : true
-      });
-    }
-
-    if (transitionFromObj.transition) {
-      activeObj = extendWithDom(activeObj, '.content', activeDom.cloneNode(true));
-      for (key in bars) {
-        if (bars.hasOwnProperty(key)) {
-          barElement = document.querySelector(bars[key]);
-          if (activeObj[key]) {
-            swapContent(activeObj[key], barElement);
-          } else if (barElement) {
-            barElement.parentNode.removeChild(barElement);
-          }
-        }
-      }
-    }
-
-    swapContent(
-      (activeObj.contents || activeDom).cloneNode(true),
-      document.querySelector('.content'),
-      transition
-    );
-
-    PUSH.id = id;
-
-    document.body.offsetHeight; // force reflow to prevent scroll
-  };
-
-
-  // Core PUSH functionality
-  // =======================
-
-  var PUSH = function (options) {
-    var key;
-    var xhr = PUSH.xhr;
-
-    options.container = options.container || options.transition ? document.querySelector('.content') : document.body;
-
-    for (key in bars) {
-      if (bars.hasOwnProperty(key)) {
-        options[key] = options[key] || document.querySelector(bars[key]);
-      }
-    }
-
-    if (xhr && xhr.readyState < 4) {
-      xhr.onreadystatechange = noop;
-      xhr.abort();
-    }
-
-    xhr = new XMLHttpRequest();
-    xhr.open('GET', options.url, true);
-    xhr.setRequestHeader('X-PUSH', 'true');
-
-    xhr.onreadystatechange = function () {
-      if (options._timeout) {
-        clearTimeout(options._timeout);
-      }
-      if (xhr.readyState === 4) {
-        xhr.status === 200 ? success(xhr, options) : failure(options.url);
-      }
-    };
-
-    if (!PUSH.id) {
-      cacheReplace({
-        id         : +new Date(),
-        url        : window.location.href,
-        title      : document.title,
-        timeout    : options.timeout,
-        transition : null
-      });
-    }
-
-    if (options.timeout) {
-      options._timeout = setTimeout(function () {  xhr.abort('timeout'); }, options.timeout);
-    }
-
-    xhr.send();
-
-    if (xhr.readyState && !options.ignorePush) {
-      cachePush();
-    }
-  };
-
-
-  // Main XHR handlers
-  // =================
-
-  var success = function (xhr, options) {
-    var key;
-    var barElement;
-    var data = parseXHR(xhr, options);
-
-    if (!data.contents) {
-      return locationReplace(options.url);
-    }
-
-    if (data.title) {
-      document.title = data.title;
-    }
-
-    if (options.transition) {
-      for (key in bars) {
-        if (bars.hasOwnProperty(key)) {
-          barElement = document.querySelector(bars[key]);
-          if (data[key]) {
-            swapContent(data[key], barElement);
-          } else if (barElement) {
-            barElement.parentNode.removeChild(barElement);
-          }
-        }
-      }
-    }
-
-    swapContent(data.contents, options.container, options.transition, function () {
-      cacheReplace({
-        id         : options.id || +new Date(),
-        url        : data.url,
-        title      : data.title,
-        timeout    : options.timeout,
-        transition : options.transition
-      }, options.id);
-      triggerStateChange();
-    });
-
-    if (!options.ignorePush && window._gaq) {
-      _gaq.push(['_trackPageview']); // google analytics
-    }
-    if (!options.hash) {
-      return;
-    }
-  };
-
-  var failure = function (url) {
-    throw new Error('Could not get: ' + url);
-  };
-
-
-  // PUSH helpers
-  // ============
-
-  var swapContent = function (swap, container, transition, complete) {
-    var enter;
-    var containerDirection;
-    var swapDirection;
-
-    if (!transition) {
-      if (container) {
-        container.innerHTML = swap.innerHTML;
-      } else if (swap.classList.contains('content')) {
-        document.body.appendChild(swap);
-      } else {
-        document.body.insertBefore(swap, document.querySelector('.content'));
-      }
-    } else {
-      enter  = /in$/.test(transition);
-
-      if (transition === 'fade') {
-        container.classList.add('in');
-        container.classList.add('fade');
-        swap.classList.add('fade');
-      }
-
-      if (/slide/.test(transition)) {
-        swap.classList.add('sliding-in', enter ? 'right' : 'left');
-        swap.classList.add('sliding');
-        container.classList.add('sliding');
-      }
-
-      container.parentNode.insertBefore(swap, container);
-    }
-
-    if (!transition) {
-      complete && complete();
-    }
-
-    if (transition === 'fade') {
-      container.offsetWidth; // force reflow
-      container.classList.remove('in');
-      var fadeContainerEnd = function () {
-        container.removeEventListener('webkitTransitionEnd', fadeContainerEnd);
-        swap.classList.add('in');
-        swap.addEventListener('webkitTransitionEnd', fadeSwapEnd);
-      };
-      var fadeSwapEnd = function () {
-        swap.removeEventListener('webkitTransitionEnd', fadeSwapEnd);
-        container.parentNode.removeChild(container);
-        swap.classList.remove('fade');
-        swap.classList.remove('in');
-        complete && complete();
-      };
-      container.addEventListener('webkitTransitionEnd', fadeContainerEnd);
-
-    }
-
-    if (/slide/.test(transition)) {
-      var slideEnd = function () {
-        swap.removeEventListener('webkitTransitionEnd', slideEnd);
-        swap.classList.remove('sliding', 'sliding-in');
-        swap.classList.remove(swapDirection);
-        container.parentNode.removeChild(container);
-        complete && complete();
-      };
-
-      container.offsetWidth; // force reflow
-      swapDirection      = enter ? 'right' : 'left';
-      containerDirection = enter ? 'left' : 'right';
-      container.classList.add(containerDirection);
-      swap.classList.remove(swapDirection);
-      swap.addEventListener('webkitTransitionEnd', slideEnd);
-    }
-  };
-
-  var triggerStateChange = function () {
-    var e = new CustomEvent('push', {
-      detail: { state: getCached(PUSH.id) },
-      bubbles: true,
-      cancelable: true
-    });
-
-    window.dispatchEvent(e);
-  };
-
-  var findTarget = function (target) {
-    var i;
-    var toggles = document.querySelectorAll('a');
-
-    for (; target && target !== document; target = target.parentNode) {
-      for (i = toggles.length; i--;) {
-        if (toggles[i] === target) {
-          return target;
-        }
-      }
-    }
-  };
-
-  var locationReplace = function (url) {
-    window.history.replaceState(null, '', '#');
-    window.location.replace(url);
-  };
-
-  var extendWithDom = function (obj, fragment, dom) {
-    var i;
-    var result = {};
-
-    for (i in obj) {
-      if (obj.hasOwnProperty(i)) {
-        result[i] = obj[i];
-      }
-    }
-
-    Object.keys(bars).forEach(function (key) {
-      var el = dom.querySelector(bars[key]);
-      if (el) {
-        el.parentNode.removeChild(el);
-      }
-      result[key] = el;
-    });
-
-    result.contents = dom.querySelector(fragment);
-
-    return result;
-  };
-
-  var parseXHR = function (xhr, options) {
-    var head;
-    var body;
-    var data = {};
-    var responseText = xhr.responseText;
-
-    data.url = options.url;
-
-    if (!responseText) {
-      return data;
-    }
-
-    if (/<html/i.test(responseText)) {
-      head           = document.createElement('div');
-      body           = document.createElement('div');
-      head.innerHTML = responseText.match(/<head[^>]*>([\s\S.]*)<\/head>/i)[0];
-      body.innerHTML = responseText.match(/<body[^>]*>([\s\S.]*)<\/body>/i)[0];
-    } else {
-      head           = body = document.createElement('div');
-      head.innerHTML = responseText;
-    }
-
-    data.title = head.querySelector('title');
-    var text = 'innerText' in data.title ? 'innerText' : 'textContent';
-    data.title = data.title && data.title[text].trim();
-
-    if (options.transition) {
-      data = extendWithDom(data, '.content', body);
-    } else {
-      data.contents = body;
-    }
-
-    return data;
-  };
-
-
-  // Attach PUSH event handlers
-  // ==========================
-
-  window.addEventListener('touchstart', function () { isScrolling = false; });
-  window.addEventListener('touchmove', function () { isScrolling = true; });
-  window.addEventListener('touchend', touchend);
-  window.addEventListener('click', function (e) { if (getTarget(e)) {e.preventDefault();} });
-  window.addEventListener('popstate', popstate);
-  window.PUSH = PUSH;
-
-}());
-
-/* ========================================================================
- * Ratchet: segmented-controllers.js v2.0.2
- * http://goratchet.com/components#segmentedControls
- * ========================================================================
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- * ======================================================================== */
-
-!(function () {
-  
-
-  var getTarget = function (target) {
-    var i;
-    var segmentedControls = document.querySelectorAll('.segmented-control .control-item');
-
-    for (; target && target !== document; target = target.parentNode) {
-      for (i = segmentedControls.length; i--;) {
-        if (segmentedControls[i] === target) {
-          return target;
-        }
-      }
-    }
-  };
-
-  window.addEventListener('touchend', function (e) {
-    var activeTab;
-    var activeBodies;
-    var targetBody;
-    var targetTab     = getTarget(e.target);
-    var className     = 'active';
-    var classSelector = '.' + className;
-
-    if (!targetTab) {
-      return;
-    }
-
-    activeTab = targetTab.parentNode.querySelector(classSelector);
-
-    if (activeTab) {
-      activeTab.classList.remove(className);
-    }
-
-    targetTab.classList.add(className);
-
-    if (!targetTab.hash) {
-      return;
-    }
-
-    targetBody = document.querySelector(targetTab.hash);
-
-    if (!targetBody) {
-      return;
-    }
-
-    activeBodies = targetBody.parentNode.querySelectorAll(classSelector);
-
-    for (var i = 0; i < activeBodies.length; i++) {
-      activeBodies[i].classList.remove(className);
-    }
-
-    targetBody.classList.add(className);
-  });
-
-  window.addEventListener('click', function (e) { if (getTarget(e.target)) {e.preventDefault();} });
-}());
-
-/* ========================================================================
- * Ratchet: sliders.js v2.0.2
- * http://goratchet.com/components#sliders
- * ========================================================================
-   Adapted from Brad Birdsall's swipe
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- * ======================================================================== */
-
-!(function () {
-  
-
-  var pageX;
-  var pageY;
-  var slider;
-  var deltaX;
-  var deltaY;
-  var offsetX;
-  var lastSlide;
-  var startTime;
-  var resistance;
-  var sliderWidth;
-  var slideNumber;
-  var isScrolling;
-  var scrollableArea;
-
-  var getSlider = function (target) {
-    var i;
-    var sliders = document.querySelectorAll('.slider > .slide-group');
-
-    for (; target && target !== document; target = target.parentNode) {
-      for (i = sliders.length; i--;) {
-        if (sliders[i] === target) {
-          return target;
-        }
-      }
-    }
-  };
-
-  var getScroll = function () {
-    if ('webkitTransform' in slider.style) {
-      var translate3d = slider.style.webkitTransform.match(/translate3d\(([^,]*)/);
-      var ret = translate3d ? translate3d[1] : 0;
-      return parseInt(ret, 10);
-    }
-  };
-
-  var setSlideNumber = function (offset) {
-    var round = offset ? (deltaX < 0 ? 'ceil' : 'floor') : 'round';
-    slideNumber = Math[round](getScroll() / (scrollableArea / slider.children.length));
-    slideNumber += offset;
-    slideNumber = Math.min(slideNumber, 0);
-    slideNumber = Math.max(-(slider.children.length - 1), slideNumber);
-  };
-
-  var onTouchStart = function (e) {
-    slider = getSlider(e.target);
-
-    if (!slider) {
-      return;
-    }
-
-    var firstItem  = slider.querySelector('.slide');
-
-    scrollableArea = firstItem.offsetWidth * slider.children.length;
-    isScrolling    = undefined;
-    sliderWidth    = slider.offsetWidth;
-    resistance     = 1;
-    lastSlide      = -(slider.children.length - 1);
-    startTime      = +new Date();
-    pageX          = e.touches[0].pageX;
-    pageY          = e.touches[0].pageY;
-    deltaX         = 0;
-    deltaY         = 0;
-
-    setSlideNumber(0);
-
-    slider.style['-webkit-transition-duration'] = 0;
-  };
-
-  var onTouchMove = function (e) {
-    if (e.touches.length > 1 || !slider) {
-      return; // Exit if a pinch || no slider
-    }
-
-    deltaX = e.touches[0].pageX - pageX;
-    deltaY = e.touches[0].pageY - pageY;
-    pageX  = e.touches[0].pageX;
-    pageY  = e.touches[0].pageY;
-
-    if (typeof isScrolling === 'undefined') {
-      isScrolling = Math.abs(deltaY) > Math.abs(deltaX);
-    }
-
-    if (isScrolling) {
-      return;
-    }
-
-    offsetX = (deltaX / resistance) + getScroll();
-
-    e.preventDefault();
-
-    resistance = slideNumber === 0         && deltaX > 0 ? (pageX / sliderWidth) + 1.25 :
-                 slideNumber === lastSlide && deltaX < 0 ? (Math.abs(pageX) / sliderWidth) + 1.25 : 1;
-
-    slider.style.webkitTransform = 'translate3d(' + offsetX + 'px,0,0)';
-  };
-
-  var onTouchEnd = function (e) {
-    if (!slider || isScrolling) {
-      return;
-    }
-
-    setSlideNumber(
-      (+new Date()) - startTime < 1000 && Math.abs(deltaX) > 15 ? (deltaX < 0 ? -1 : 1) : 0
-    );
-
-    offsetX = slideNumber * sliderWidth;
-
-    slider.style['-webkit-transition-duration'] = '.2s';
-    slider.style.webkitTransform = 'translate3d(' + offsetX + 'px,0,0)';
-
-    e = new CustomEvent('slide', {
-      detail: { slideNumber: Math.abs(slideNumber) },
-      bubbles: true,
-      cancelable: true
-    });
-
-    slider.parentNode.dispatchEvent(e);
-  };
-
-  window.addEventListener('touchstart', onTouchStart);
-  window.addEventListener('touchmove', onTouchMove);
-  window.addEventListener('touchend', onTouchEnd);
-
-}());
-
-/* ========================================================================
- * Ratchet: toggles.js v2.0.2
- * http://goratchet.com/components#toggles
- * ========================================================================
-   Adapted from Brad Birdsall's swipe
- * Copyright 2014 Connor Sears
- * Licensed under MIT (https://github.com/twbs/ratchet/blob/master/LICENSE)
- * ======================================================================== */
-
-!(function () {
-  
-
-  var start     = {};
-  var touchMove = false;
-  var distanceX = false;
-  var toggle    = false;
-
-  var findToggle = function (target) {
-    var i;
-    var toggles = document.querySelectorAll('.toggle');
-
-    for (; target && target !== document; target = target.parentNode) {
-      for (i = toggles.length; i--;) {
-        if (toggles[i] === target) {
-          return target;
-        }
-      }
-    }
-  };
-
-  window.addEventListener('touchstart', function (e) {
-    e = e.originalEvent || e;
-
-    toggle = findToggle(e.target);
-
-    if (!toggle) {
-      return;
-    }
-
-    var handle      = toggle.querySelector('.toggle-handle');
-    var toggleWidth = toggle.clientWidth;
-    var handleWidth = handle.clientWidth;
-    var offset      = toggle.classList.contains('active') ? (toggleWidth - handleWidth) : 0;
-
-    start     = { pageX : e.touches[0].pageX - offset, pageY : e.touches[0].pageY };
-    touchMove = false;
-  });
-
-  window.addEventListener('touchmove', function (e) {
-    e = e.originalEvent || e;
-
-    if (e.touches.length > 1) {
-      return; // Exit if a pinch
-    }
-
-    if (!toggle) {
-      return;
-    }
-
-    var handle      = toggle.querySelector('.toggle-handle');
-    var current     = e.touches[0];
-    var toggleWidth = toggle.clientWidth;
-    var handleWidth = handle.clientWidth;
-    var offset      = toggleWidth - handleWidth;
-
-    touchMove = true;
-    distanceX = current.pageX - start.pageX;
-
-    if (Math.abs(distanceX) < Math.abs(current.pageY - start.pageY)) {
-      return;
-    }
-
-    e.preventDefault();
-
-    if (distanceX < 0) {
-      return (handle.style.webkitTransform = 'translate3d(0,0,0)');
-    }
-    if (distanceX > offset) {
-      return (handle.style.webkitTransform = 'translate3d(' + offset + 'px,0,0)');
-    }
-
-    handle.style.webkitTransform = 'translate3d(' + distanceX + 'px,0,0)';
-
-    toggle.classList[(distanceX > (toggleWidth / 2 - handleWidth / 2)) ? 'add' : 'remove']('active');
-  });
-
-  window.addEventListener('touchend', function (e) {
-    if (!toggle) {
-      return;
-    }
-
-    var handle      = toggle.querySelector('.toggle-handle');
-    var toggleWidth = toggle.clientWidth;
-    var handleWidth = handle.clientWidth;
-    var offset      = (toggleWidth - handleWidth);
-    var slideOn     = (!touchMove && !toggle.classList.contains('active')) || (touchMove && (distanceX > (toggleWidth / 2 - handleWidth / 2)));
-
-    if (slideOn) {
-      handle.style.webkitTransform = 'translate3d(' + offset + 'px,0,0)';
-    } else {
-      handle.style.webkitTransform = 'translate3d(0,0,0)';
-    }
-
-    toggle.classList[slideOn ? 'add' : 'remove']('active');
-
-    e = new CustomEvent('toggle', {
-      detail: { isActive: slideOn },
-      bubbles: true,
-      cancelable: true
-    });
-
-    toggle.dispatchEvent(e);
-
-    touchMove = false;
-    toggle    = false;
-  });
-
-}());
-
-define("ratchet", function(){});
-
 /** @jsx React.DOM */
 define('view/launch',[
-  'config/Ids',
+  'config/Config',
   'parse',
   'react',
   'fastclick',
-  'view/AppView',
-  'ratchet'
-], function (Ids, Parse, React, FastClick, AppView) {
-  Parse.initialize(Ids.Parse.AppId, Ids.Parse.JavaScriptKey);
+  'view/AppView'
+], function (Config, Parse, React, FastClick, AppView) {
+  Parse.initialize(Config.Parse.AppId, Config.Parse.JavaScriptKey);
   React.initializeTouchEvents(true);
   
   function launch() {
     FastClick.attach(document.body);
     React.renderComponent(AppView(null), document.getElementById("app"));
   }
-
+  
   window.fbAsyncInit = function () {
     Parse.FacebookUtils.init({
-      appId: Ids.Facebook.AppId,
+      appId: Config.Facebook.AppId,
       channelUrl: 'http://meta.parseapp.com',
       cookie: true,
       xfbml: true
