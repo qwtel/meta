@@ -15,69 +15,69 @@ var minifyCSS = require('gulp-minify-css');
 var http = require('http');
 var ecstatic = require('ecstatic');
 
-const SRC = 'webapp';
-const BUILD = 'Parse/public';
+const DEV_PATH = 'webapp';
+const PROD_PATH = 'parse/public';
 
 const HTTP_PORT = 8000;
 
 var paths = {
   bower: [
-      SRC + '/bower_components/**/*.js',
-      SRC + '/bower_components/**/*.css',
-      SRC + '/bower_components/**/*.otf',
-      SRC + '/bower_components/**/*.eot',
-      SRC + '/bower_components/**/*.svg',
-      SRC + '/bower_components/**/*.ttf',
-      SRC + '/bower_components/**/*.woff'
+      DEV_PATH + '/bower_components/**/*.js',
+      DEV_PATH + '/bower_components/**/*.css',
+      DEV_PATH + '/bower_components/**/*.otf',
+      DEV_PATH + '/bower_components/**/*.eot',
+      DEV_PATH + '/bower_components/**/*.svg',
+      DEV_PATH + '/bower_components/**/*.ttf',
+      DEV_PATH + '/bower_components/**/*.woff'
   ],
 
-  js: SRC + '/src/js/**/*.js',
-  jsx: SRC + '/src/js/**/*.jsx',
-  coffee: SRC + '/src/js/**/*.coffee',
-  requireConfig: SRC + '/src/js/require-config.js',
+  js: DEV_PATH + '/src/js/**/*.js',
+  jsx: DEV_PATH + '/src/js/**/*.jsx',
+  coffee: DEV_PATH + '/src/js/**/*.coffee',
+  requireConfig: DEV_PATH + '/src/js/require-config.js',
 
-  less: SRC + '/src/css/**/*.less',
-  css: SRC + '/build/css/**/*.css',
+  less: DEV_PATH + '/src/css/**/*.less',
+  css: DEV_PATH + '/build/css/**/*.css',
 
-  images: SRC + '/img/*',
+  images: DEV_PATH + '/img/*',
 
-  index: SRC + '/index.html',
+  index: DEV_PATH + '/index.html',
 
-  spec: SRC + '/spec/*.coffee'
+  spec: DEV_PATH + '/spec/*.coffee'
 };
 
 gulp.task('bower', function () {
   return gulp.src(paths.bower)
-    .pipe(gulp.dest(BUILD + '/bower_components'))
+    .pipe(gulp.dest(PROD_PATH + '/bower_components'))
 });
 
 gulp.task('js', function () {
   return gulp.src(paths.js)
-    .pipe(gulp.dest(SRC + '/build/js'))
+    .pipe(gulp.dest(DEV_PATH + '/build/js'))
 });
 
 gulp.task('jsx', function () {
   return gulp.src(paths.jsx)
     .pipe(react())
-    .pipe(gulp.dest(SRC + '/build/js'));
+    .pipe(gulp.dest(DEV_PATH + '/build/js'));
 });
 
 gulp.task('coffee', function () {
   return gulp.src(paths.coffee)
     .pipe(coffee())
-    .pipe(gulp.dest(SRC + '/build/js'));
+    .pipe(gulp.dest(DEV_PATH + '/build/js'));
 });
 
 gulp.task('less', function () {
   return gulp.src(paths.less)
     .pipe(less())
     .pipe(prefix("last 1 version", "> 1%", "ie 8", "ie 7"))
-    .pipe(gulp.dest(SRC + '/build/css'));
+    .pipe(gulp.dest(DEV_PATH + '/build/css'));
 });
 
 gulp.task('images', function () {
   return gulp.src(paths.images)
-    .pipe(gulp.dest(BUILD + '/img'));
+    .pipe(gulp.dest(PROD_PATH + '/img'));
 });
 
 gulp.task('compile', ['js', 'jsx', 'coffee', 'less', 'images']);
@@ -95,17 +95,17 @@ gulp.task('watch', function () {
 gulp.task('index', function () {
   return gulp.src(paths.index)
     .pipe(minifyHTML())
-    .pipe(gulp.dest(BUILD))
+    .pipe(gulp.dest(PROD_PATH))
 });
 
 gulp.task('css', function () {
   return gulp.src(paths.css)
     .pipe(minifyCSS())
-    .pipe(gulp.dest(BUILD + '/build/css'))
+    .pipe(gulp.dest(PROD_PATH + '/build/css'))
 });
 
 var requireConfig = {
-  baseUrl: SRC + '/build/js',
+  baseUrl: DEV_PATH + '/build/js',
   paths: {
     parse: 'vendor/parse-1.2.19',
     director: '../../bower_components/director/build/director',
@@ -150,19 +150,19 @@ var requireConfig = {
 
 gulp.task('rjs-debug', ['compile'], function () {
   return rjs(requireConfig)
-    .pipe(gulp.dest(BUILD + '/build/js'))
+    .pipe(gulp.dest(PROD_PATH + '/build/js'))
 });
 
 gulp.task('rjs', ['compile'], function () {
   return rjs(requireConfig)
     .pipe(uglify())
-    .pipe(gulp.dest(BUILD + '/build/js'))
+    .pipe(gulp.dest(PROD_PATH + '/build/js'))
 });
 
 gulp.task('requireConfig', function () {
   return gulp.src(paths.requireConfig)
     .pipe(uglify())
-    .pipe(gulp.dest(BUILD + '/build/js'))
+    .pipe(gulp.dest(PROD_PATH + '/build/js'))
 });
 
 gulp.task('copy', ['bower', 'index', 'css', 'requireConfig']);
@@ -180,11 +180,11 @@ function server(root) {
 }
 
 gulp.task('http', function () {
-  server(SRC)
+  server(DEV_PATH)
 });
 
-gulp.task('http-www', function () {
-  server(BUILD)
+gulp.task('http-prod', function () {
+  server(PROD_PATH)
 });
 
 gulp.task('development', ['compile', 'watch', 'http']);
