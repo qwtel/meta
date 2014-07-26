@@ -24,31 +24,34 @@ define([
           if (!user.existed()) {
             console.log("User signed up and logged in through Facebook!");
             self.setPage('profile');
+            FacebookService.fetch()
           } else {
             console.log("User logged in through Facebook!");
             self.setPage('play');
           }
-          return FacebookService.fetch()
-        }).catch(function (error, user) {
+        })
+        .catch(function (error, user) {
           // TODO: popup
           console.log("User cancelled the Facebook login or did not fully authorize.", error, user);
         });
     },
 
     componentDidMount: function () {
-      this.router = Router({
+      window.router = Router({
+        '': this.setPageR.bind(this, 'login'),
         '/': this.setPageR.bind(this, 'login'),
         'login': this.setPageR.bind(this, 'login'),
         'play': this.setPageR.bind(this, 'play'),
         'history': this.setPageR.bind(this, 'history'),
         'profile': this.setPageR.bind(this, 'profile')
+        // TODO: 404
       });
-      this.router.init('/');
+      window.router.init('/');
     },
 
     setPageR: function (page) {
       if (!this.state.user) {
-        this.router.setRoute('login');
+        window.router.setRoute('login');
         this.setPage('login');
       } else {
         this.setPage(page);

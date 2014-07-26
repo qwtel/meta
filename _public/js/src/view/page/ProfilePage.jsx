@@ -10,18 +10,25 @@ define([
       var firstName = this.refs.name.getDOMNode().value;
       var about = this.refs.message.getDOMNode().value;
 
-      if (firstName && (firstName = firstName.trim()) !== '' &&
-        about && (about = about.trim()) !== '') {
+      if (firstName && (firstName = firstName.trim()) !== '') {
+        this.props.user.set('firstName', firstName);
+      }
 
-        this.props.user.set({
-          firstName: firstName,
-          about: about
-        });
+      if (about && (about = about.trim()) !== '') {
+        this.props.user.set('about', about);
+      }
 
-        UserService.save(this.props.user).then(function() {
+      UserService.save(this.props.user)
+        .then(function () {
           this.forceUpdate();
         }.bind(this));
-      }
+    },
+
+    onLogoutClicked: function () {
+      UserService.logOut()
+        .then(function () {
+          window.router.setRoute('login');
+        });
     },
 
     render: function () {
@@ -71,6 +78,12 @@ define([
               <span className="pull-left">Last online</span>
               <span className="pull-right">{Moment(user.updatedAt).format('LLLL')}</span>
             </li>
+            <li className="table-view-cell table-view-divider"/>
+            <div className="content-padded">
+              <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
+              <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
+              <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
+            </div>
           </ul>
         </div>;
       return profile;

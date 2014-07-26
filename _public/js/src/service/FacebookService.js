@@ -41,21 +41,22 @@ define([
       );
     });
 
-    return Promise.all([p1, p2]).then(function (results) {
-      var profile = results[0];
-      var picture = results[1];
+    return Promise.all([p1, p2])
+      .then(function (results) {
+        var profile = results[0];
+        var picture = results[1];
 
-      user.set({
-        firstName: profile.first_name,
-        bannerUrl: profile.cover.source,
-        bannerOffset: profile.cover.offset_y,
-        about: profile.about || '',
-        pictureUrl: picture.data.url,
-        minAge: profile.age_range.min
+        user.set({
+          firstName: profile.first_name,
+          about: profile.about || '',
+          minAge: profile.age_range.min,
+          pictureUrl: picture.data.url,
+          bannerUrl: profile.cover.source,
+          bannerOffset: profile.cover.offset_y
+        });
+
+        UserService.save(user)
       });
-
-      UserService.save(user)
-    });
   };
 
   FacebookService.update = FacebookService.fetch;

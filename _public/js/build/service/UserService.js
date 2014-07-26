@@ -20,6 +20,13 @@ define([
       });
     });
   };
+  
+  UserService.logOut = function () {
+    return new Promise(function (res) {
+      Parse.User.logOut();
+      res();
+    });
+  };
 
   UserService.save = function (user) {
     return user.save()
