@@ -1,33 +1,36 @@
-Parse.Cloud.beforeSave("User", function (request, response) {
+Parse.Cloud.afterSave(Parse.User, function (request, response) {
+  console.log("Saving User..");
+  
   var user = request.object;
+  
+  if (!user.get('statSheet')) {
+    console.log("New user, creating StatSheet");
 
-  var query = new Parse.Query("User");
-  query.get(user.objectId)
-    .then(function () {
-      console.log("User already exits, just updating");
-      response.success();
-    }, function () {
-      console.log("New user, creating StatSheet");
-      
-      var statSheet = Parse.Object.extend("StatSheet");
-      
-      statSheet.set({
-        user: user.objectId,
-        level: 1,
-        points: 0,
-        ppg: 0,
-        score: 0,
-        rank: 0
-      });
+    var StatSheet = Parse.Object.extend("StatSheet");
+    var statSheet = new StatSheet();
 
-      statSheet.save()
-        .then(function () {
-          response.success();
-        })
-        .catch(function (error) {
-          response.error(error);
-        });
+    statSheet.set({
+      user: user,
+      level: 1,
+      points: 0,
+      ppg: 0,
+      score: 0,
+      rank: 0
     });
+
+    statSheet.save()
+      .then(function () {
+        user.set('statSheet', statSheet);
+        return user.save();
+      }, function (error) {
+        response.error(error);
+      })
+      .then(function () {
+        response.success();
+      }, function(error) {
+        response.error(error);
+      });
+  }
 });
 
 // Use Parse.Cloud.define to define as many cloud functions as you want.

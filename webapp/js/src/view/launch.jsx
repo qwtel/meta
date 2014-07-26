@@ -3,8 +3,7 @@ define([
   'parse',
   'react',
   'fastclick',
-  'view/AppView',
-  'ratchet'
+  'view/AppView'
 ], function (Ids, Parse, React, FastClick, AppView) {
   Parse.initialize(Ids.Parse.AppId, Ids.Parse.JavaScriptKey);
   React.initializeTouchEvents(true);

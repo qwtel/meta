@@ -1,5 +1,5 @@
 require.config({
-  baseUrl: '/js/build',
+  baseUrl: 'js/build',
   paths: {
     parse: 'vendor/parse-1.2.19',
     director: '../../bower_components/director/build/director.min',
