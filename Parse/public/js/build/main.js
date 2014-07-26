@@ -19057,6 +19057,8 @@ define('service/UserService',[
   
   UserService.logOut = function () {
     return new Promise(function (res) {
+      clearInterval(UserService._heartbeat);
+      delete UserService._heartbeat;
       Parse.User.logOut();
       res();
     });
@@ -19068,15 +19070,17 @@ define('service/UserService',[
   };
   
   UserService.startHeartbeat = function () {
-    if (!UserService._heartbeat) {
+    if (!UserService._heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
       UserService._heartbeat = setInterval(function () {
-        console.log("hb");
-        Parse.User.current().save();
+        if (UserService.current()) {
+          console.log("hb");
+          Parse.User.current().save();
+        }
       }, Config.HeartbeatInterval);
     }
   };
-
+  
   return UserService;
 });
 
@@ -39383,6 +39387,54 @@ module.exports = warning;
 (88)
 });
 /** @jsx React.DOM */
+define('view/page/LoginPage',[
+  'service/UserService',
+  'service/FacebookService',
+  'promise',
+  'react'
+], function (UserService, FacebookService, Promise, React) {
+  return React.createClass({
+    onLoginClicked: function () {
+      UserService.logIn()
+        .then(function (user) {
+          UserService.startHeartbeat();
+          if (!user.existed()) {
+            console.log("User signed up and logged in through Facebook!");
+            window.router.setRoute('profile');
+            FacebookService.fetch();
+          } else {
+            console.log("User logged in through Facebook!");
+            window.router.setRoute('play');
+          }
+        })
+        .catch(function (error, user) {
+          // TODO: popup
+          console.log("User cancelled the Facebook login or did not fully authorize.", error, user);
+        });
+    },
+    
+    render: function () {
+      var loginPage =
+        React.DOM.div({className: "content"}, 
+          React.DOM.p({className: "content-padded"}, 
+          "Meta is a insanely simple mutliplayer game that is loosely based on the", 
+                ' ', 
+            React.DOM.a({href: "http://en.wikipedia.org/wiki/Prisoner's_dilemma"}, "Prisoner's Dilemma"), 
+                ', ', 
+            React.DOM.a({href: "http://en.wikipedia.org/wiki/Rock-paper-scissors"}, "Rock-Paper-Scissors"), 
+                ' and (uhm..) ', 
+            React.DOM.a({href: "http://www.gotinder.com/"}, "Tinder"), 
+          "."), 
+          React.DOM.p({className: "content-padded"}, 
+            React.DOM.button({className: "btn btn-primary btn-block", onClick: this.onLoginClicked, style: {backgroundColor: "#4c69ba"}}, "Login with Facebook")
+          )
+        );
+      return loginPage;
+    }
+  });
+});
+
+/** @jsx React.DOM */
 define('view/component/PlayerView',[
   'react'
 ], function (React) {
@@ -40439,18 +40491,18 @@ define("director", (function (global) {
 define('view/AppView',[
   'service/UserService',
   'service/FacebookService',
+  'view/page/LoginPage',
   'view/page/ProfilePage',
   'view/page/HistoryPage',
   'view/page/PlayPage',
   'view/component/NavBarView',
   'react',
   'director'
-], function (UserService, FacebookService, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
+], function (UserService, FacebookService, LoginPage, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
   return React.createClass({
     getInitialState: function () {
       return {
-        page: null,
-        user: UserService.current()
+        page: null
       }
     },
 
@@ -40477,7 +40529,7 @@ define('view/AppView',[
     },
 
     onRouteChanged: function (page) {
-      if (!this.state.user) {
+      if (!UserService.current()) {
         window.router.setRoute('login');
         this.setPage('login');
       } else {
@@ -40498,11 +40550,11 @@ define('view/AppView',[
       if (this.state.page === 'login') {
         page = LoginPage(null);
       } else if (this.state.page === 'profile') {
-        page = ProfilePage({user: this.state.user});
+        page = ProfilePage({user: UserService.current()});
       } else if (this.state.page === 'history') {
-        page = HistoryPage({user: this.state.user});
+        page = HistoryPage({user: UserService.current()});
       } else if (this.state.page === 'play') {
-        page = PlayPage({user: this.state.user});
+        page = PlayPage({user: UserService.current()});
       }
 
       return (
