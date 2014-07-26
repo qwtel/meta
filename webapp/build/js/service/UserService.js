@@ -47,7 +47,7 @@ define([
       console.log("Starting heartbeat...");
       UserService._heartbeat = setInterval(function () {
         if (UserService.current()) {
-          console.log("hb");
+          console.log("♥");
           Parse.User.current().save();
         }
       }, Config.HeartbeatInterval);

@@ -16,7 +16,7 @@ define([
   window.fbAsyncInit = function () {
     Parse.FacebookUtils.init({
       appId: Config.Facebook.AppId,
-      channelUrl: 'http://meta.parseapp.com',
+      channelUrl: Config.ChannelUrl,
       cookie: true,
       xfbml: true
     });
