@@ -31,13 +31,13 @@ var paths = {
       SRC + '/bower_components/**/*.woff'
   ],
 
-  js: SRC + '/js/src/**/*.js',
-  jsx: SRC + '/js/src/**/*.jsx',
-  coffee: SRC + '/js/src/**/*.coffee',
-  requireConfig: SRC + '/js/src/require-config.js',
+  js: SRC + '/src/js/**/*.js',
+  jsx: SRC + '/src/js/**/*.jsx',
+  coffee: SRC + '/src/js/**/*.coffee',
+  requireConfig: SRC + '/src/js/require-config.js',
 
-  less: SRC + '/css/src/**/*.less',
-  css: SRC + '/css/build/**/*.css',
+  less: SRC + '/src/css/**/*.less',
+  css: SRC + '/build/css/**/*.css',
 
   images: SRC + '/img/*',
 
@@ -53,26 +53,26 @@ gulp.task('bower', function () {
 
 gulp.task('js', function () {
   return gulp.src(paths.js)
-    .pipe(gulp.dest(SRC + '/js/build'))
+    .pipe(gulp.dest(SRC + '/build/js'))
 });
 
 gulp.task('jsx', function () {
   return gulp.src(paths.jsx)
     .pipe(react())
-    .pipe(gulp.dest(SRC + '/js/build'));
+    .pipe(gulp.dest(SRC + '/build/js'));
 });
 
 gulp.task('coffee', function () {
   return gulp.src(paths.coffee)
     .pipe(coffee())
-    .pipe(gulp.dest(SRC + '/js/build'));
+    .pipe(gulp.dest(SRC + '/build/js'));
 });
 
 gulp.task('less', function () {
   return gulp.src(paths.less)
     .pipe(less())
     .pipe(prefix("last 1 version", "> 1%", "ie 8", "ie 7"))
-    .pipe(gulp.dest(SRC + '/css/build'));
+    .pipe(gulp.dest(SRC + '/build/css'));
 });
 
 gulp.task('images', function () {
@@ -101,11 +101,11 @@ gulp.task('index', function () {
 gulp.task('css', function () {
   return gulp.src(paths.css)
     .pipe(minifyCSS())
-    .pipe(gulp.dest(BUILD + '/css/build'))
+    .pipe(gulp.dest(BUILD + '/build/css'))
 });
 
 var requireConfig = {
-  baseUrl: SRC + '/js/build',
+  baseUrl: SRC + '/build/js',
   paths: {
     parse: 'vendor/parse-1.2.19',
     director: '../../bower_components/director/build/director',
@@ -150,19 +150,19 @@ var requireConfig = {
 
 gulp.task('rjs-debug', ['compile'], function () {
   return rjs(requireConfig)
-    .pipe(gulp.dest(BUILD + '/js/build'))
+    .pipe(gulp.dest(BUILD + '/build/js'))
 });
 
 gulp.task('rjs', ['compile'], function () {
   return rjs(requireConfig)
     .pipe(uglify())
-    .pipe(gulp.dest(BUILD + '/js/build'))
+    .pipe(gulp.dest(BUILD + '/build/js'))
 });
 
 gulp.task('requireConfig', function () {
   return gulp.src(paths.requireConfig)
     .pipe(uglify())
-    .pipe(gulp.dest(BUILD + '/js/build'))
+    .pipe(gulp.dest(BUILD + '/build/js'))
 });
 
 gulp.task('copy', ['bower', 'index', 'css', 'requireConfig']);
