@@ -36,6 +36,9 @@ require.config({
     parse: {
       deps: ['jquery'],
       exports: "Parse"
+    },
+    promise: {
+      exports: "Promise"
     }
   },
   name: 'view/launch',

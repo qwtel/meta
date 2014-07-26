@@ -144,7 +144,7 @@ var requireConfig = {
       exports: "Parse"
     }
   },
-  name: 'view/launch',
+  name: 'view/main',
   out: 'main.js'
 };
 

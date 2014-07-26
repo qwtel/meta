@@ -30,6 +30,8 @@ define([
   
   UserService.logOut = function () {
     return new Promise(function (res) {
+      clearInterval(UserService._heartbeat);
+      delete UserService._heartbeat;
       Parse.User.logOut();
       res();
     });
@@ -41,14 +43,16 @@ define([
   };
   
   UserService.startHeartbeat = function () {
-    if (!UserService._heartbeat) {
+    if (!UserService._heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
       UserService._heartbeat = setInterval(function () {
-        console.log("hb");
-        Parse.User.current().save();
+        if (UserService.current()) {
+          console.log("hb");
+          Parse.User.current().save();
+        }
       }, Config.HeartbeatInterval);
     }
   };
-
+  
   return UserService;
 });

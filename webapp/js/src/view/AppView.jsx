@@ -1,24 +1,24 @@
 define([
   'service/UserService',
   'service/FacebookService',
+  'view/page/LoginPage',
   'view/page/ProfilePage',
   'view/page/HistoryPage',
   'view/page/PlayPage',
   'view/component/NavBarView',
   'react',
   'director'
-], function (UserService, FacebookService, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
+], function (UserService, FacebookService, LoginPage, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
   return React.createClass({
     getInitialState: function () {
       return {
-        page: null,
-        user: UserService.current()
+        page: null
       }
     },
 
     componentDidMount: function () {
       this.initRouter();
-      this.initHeartbeat();
+      this.startHeartbeat();
     },
 
     initRouter: function () {
@@ -34,12 +34,12 @@ define([
       window.router.init('/');
     },
 
-    initHeartbeat: function () {
+    startHeartbeat: function () {
       UserService.startHeartbeat();
     },
 
     onRouteChanged: function (page) {
-      if (!this.state.user) {
+      if (!UserService.current()) {
         window.router.setRoute('login');
         this.setPage('login');
       } else {
@@ -60,11 +60,11 @@ define([
       if (this.state.page === 'login') {
         page = <LoginPage />;
       } else if (this.state.page === 'profile') {
-        page = <ProfilePage user={this.state.user} />;
+        page = <ProfilePage user={UserService.current()} />;
       } else if (this.state.page === 'history') {
-        page = <HistoryPage user={this.state.user} />;
+        page = <HistoryPage user={UserService.current()} />;
       } else if (this.state.page === 'play') {
-        page = <PlayPage user={this.state.user} />;
+        page = <PlayPage user={UserService.current()} />;
       }
 
       return (

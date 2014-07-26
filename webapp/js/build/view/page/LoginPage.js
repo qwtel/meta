@@ -2,21 +2,21 @@
 define([
   'service/UserService',
   'service/FacebookService',
+  'promise',
   'react'
-], function (UserService, FacebookService, React) {
+], function (UserService, FacebookService, Promise, React) {
   return React.createClass({
     onLoginClicked: function () {
-      var self = this;
       UserService.logIn()
         .then(function (user) {
-          self.state.user = user;
+          UserService.startHeartbeat();
           if (!user.existed()) {
             console.log("User signed up and logged in through Facebook!");
-            self.setPage('profile');
-            FacebookService.fetch()
+            window.router.setRoute('profile');
+            FacebookService.fetch();
           } else {
             console.log("User logged in through Facebook!");
-            self.setPage('play');
+            window.router.setRoute('play');
           }
         })
         .catch(function (error, user) {

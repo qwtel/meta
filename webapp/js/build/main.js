@@ -1,5 +1,4 @@
 // dummy file
-// see require-config.js for usage
-// will be populated in production
+// will be populated by r.js
 define(function () {
 });
