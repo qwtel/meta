@@ -34,7 +34,7 @@ var paths = {
   js: DEV_PATH + '/src/js/**/*.js',
   jsx: DEV_PATH + '/src/js/**/*.jsx',
   coffee: DEV_PATH + '/src/js/**/*.coffee',
-  requireConfig: DEV_PATH + '/src/js/require-config.js',
+  requireConfig: DEV_PATH + '/src/js/requireConfig.js',
 
   less: DEV_PATH + '/src/css/**/*.less',
   css: DEV_PATH + '/build/css/**/*.css',
