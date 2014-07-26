@@ -1,7 +1,7 @@
 require.config({
   baseUrl: 'build/js',
   paths: {
-    parse: 'vendor/parse-1.2.19',
+    parse: 'vendor/parse/parse-1.2.19',
     director: '../../bower_components/director/build/director.min',
     fastclick: '../../bower_components/fastclick/lib/fastclick',
     jquery: '../../bower_components/jquery/dist/jquery.min',

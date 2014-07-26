@@ -107,7 +107,7 @@ gulp.task('css', function () {
 var requireConfig = {
   baseUrl: DEV_PATH + '/build/js',
   paths: {
-    parse: 'vendor/parse-1.2.19',
+    parse: 'vendor/parse/parse-1.2.19',
     director: '../../bower_components/director/build/director',
     fastclick: '../../bower_components/fastclick/lib/fastclick',
     jquery: '../../bower_components/jquery/dist/jquery',
