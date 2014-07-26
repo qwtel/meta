@@ -1,1 +1,0 @@
-define("view/launch",[],function(){return{}});

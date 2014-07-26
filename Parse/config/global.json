@@ -4,6 +4,10 @@
             "applicationId": "dRPW23Cv2H5i4CNWwKnHKhQeVUYSaUL17NyyqMHW", 
             "masterKey": "JcENVz8sa9EmD1Pc4QpdWGXh3kUM9CC7zlI8Swr4"
         }, 
+        "MetaDebug": {
+            "applicationId": "e63IuI48OfY570rwmCXqZdQiKv8u1nUXI5IY71WZ", 
+            "masterKey": "FjlWjE110dxqxDgoIRWfgEBH4RjjeQIvRjilshLH"
+        }, 
         "_default": {
             "link": "Meta"
         }
