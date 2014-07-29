@@ -6,7 +6,7 @@ define([
   return React.createClass({
     render: function () {
       var plagePage =
-        <div className="content">
+        <div id="play" className="page content">
           <PlayerView user={this.props.user} />
           <p className="content-padded" style={{paddingTop: 0}}>
             <button className="btn btn-positive btn-block">Cooperate</button>

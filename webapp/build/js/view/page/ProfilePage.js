@@ -55,7 +55,7 @@ define([
     render: function () {
       var user = this.props.user.toJSON();
       var profile =
-        React.DOM.div({id: "profile", className: "content"}, 
+        React.DOM.div({id: "profile", className: "page content"}, 
           PlayerView({user: this.props.user}), 
           React.DOM.ul({className: "table-view"}, 
             React.DOM.div({className: "input-row"}, 
@@ -67,7 +67,7 @@ define([
               React.DOM.input({type: "text", placeholder: "Message", ref: "message", defaultValue: user.about})
             ), 
             React.DOM.div({className: "content-padded"}, 
-              React.DOM.button({className: "btn btn-primary btn-block", onClick: this.onSaveClicked}, "Save")
+              React.DOM.button({className: "btn btn-primary btn-outlined btn-block", onClick: this.onSaveClicked}, "Save")
             ), 
             React.DOM.li({className: "table-view-cell table-view-divider"}), 
             React.DOM.li({className: "table-view-cell"}, 

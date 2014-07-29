@@ -7,7 +7,7 @@ define([
   return React.createClass({
     render: function () {
       var plagePage =
-        React.DOM.div({className: "content"}, 
+        React.DOM.div({id: "play", className: "page content"}, 
           PlayerView({user: this.props.user}), 
           React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
             React.DOM.button({className: "btn btn-positive btn-block"}, "Cooperate"), 

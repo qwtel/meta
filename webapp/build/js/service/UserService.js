@@ -42,13 +42,15 @@ define([
     return user.save()
   };
   
-  UserService.startHeartbeat = function () {
+  UserService.startHeartbeat = function (cb) {
     if (!UserService._heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
+      Parse.User.current().save();
       UserService._heartbeat = setInterval(function () {
         if (UserService.current()) {
           console.log("♥");
           Parse.User.current().save();
+          cb();
         }
       }, Config.HeartbeatInterval);
     }

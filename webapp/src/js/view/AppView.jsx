@@ -35,7 +35,10 @@ define([
     },
 
     startHeartbeat: function () {
-      UserService.startHeartbeat();
+      var self = this;
+      UserService.startHeartbeat(function () {
+        self.forceUpdate();
+      });
     },
 
     onRouteChanged: function (page) {

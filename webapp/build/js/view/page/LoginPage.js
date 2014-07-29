@@ -27,7 +27,7 @@ define([
     
     render: function () {
       var loginPage =
-        React.DOM.div({className: "content"}, 
+        React.DOM.div({id: "login", className: "page content"}, 
           React.DOM.p({className: "content-padded"}, 
           "Meta is a insanely simple mutliplayer game that is loosely based on the", 
                 ' ', 

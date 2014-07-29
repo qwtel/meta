@@ -11,6 +11,7 @@ body {
   -webkit-touch-callout: none;
   -webkit-text-size-adjust: none;
   -webkit-user-select: none;
+  background: #f8f8f8;
 }
 .btn-block {
   padding: 10px;
@@ -42,7 +43,11 @@ body {
   width: 0;
   height: 0;
 }
-.other .profilepic .dot-pos .dot {
+.other .profilepic .level {
+  left: 104.60124255px;
+  top: 90.48064509px;
+}
+.other .profilepic .level .dot {
   padding: 0 4px;
   font-size: 12px;
   text-align: center;
@@ -54,15 +59,43 @@ body {
   min-width: 25px;
   height: 25px;
   border-radius: 12.5px;
-  background-color: #ddd;
-}
-.other .profilepic .level {
-  left: 104.60124255px;
-  top: 90.48064509px;
+  background-color: #dddddd;
 }
 .other .profilepic .rank {
   left: 10.39875745px;
   top: 90.48064509px;
+}
+.other .profilepic .rank .dot {
+  padding: 0 4px;
+  font-size: 12px;
+  text-align: center;
+  line-height: 25px;
+  position: relative;
+  top: -12.5px;
+  left: -12.5px;
+  display: inline-block;
+  min-width: 25px;
+  height: 25px;
+  border-radius: 12.5px;
+  background-color: #dddddd;
+}
+.other .profilepic .is-online {
+  left: 57.5px;
+  top: 0px;
+}
+.other .profilepic .is-online .dot {
+  padding: 0 4px;
+  font-size: 12px;
+  text-align: center;
+  line-height: 15px;
+  position: relative;
+  top: -7.5px;
+  left: -7.5px;
+  display: inline-block;
+  min-width: 15px;
+  height: 15px;
+  border-radius: 7.5px;
+  background-color: #5cb85c;
 }
 .other .banner {
   width: 100%;
@@ -96,32 +129,30 @@ body {
 .other .about h6,
 .other .about p {
   display: inline-block;
+  position: relative;
   color: #fff;
 }
 .other .about p {
   font-weight: 500;
 }
-.history > *:first-child {
+#history ul > *:first-child {
   border-top: none;
 }
-.history .game {
-  padding-right: 15px;
-}
-.history .game > * {
+#history ul .game > * {
   float: left;
   line-height: 50px;
 }
-.history .game .move {
+#history ul .game .move {
   position: relative;
-  width: 80px;
+  width: 75px;
   height: 50px;
 }
-.history .game .move .profilepic {
+#history ul .game .move .profilepic {
   width: 50px;
   height: 50px;
   border-radius: 100%;
 }
-.history .game .move .name {
+#history ul .game .move .name {
   font-weight: bold;
   position: absolute;
   top: 7.5px;
@@ -133,11 +164,11 @@ body {
   height: 35px;
   border-radius: 100%;
 }
-.history .game .result {
+#history ul .game .result {
   font-size: 32px;
   margin: 0 15px;
 }
-.history .game .points {
+#history ul .game .points {
   font-size: 28px;
   float: right;
 }
@@ -189,10 +220,40 @@ body {
   top: -2px;
   margin: 0 5px;
 }
-#profile .table-view {
+#profile .table-view,
+#history .table-view {
   margin-bottom: 0;
   border-bottom: 0;
 }
-#profile .table-view .table-view-cell {
+#profile .table-view .table-view-cell,
+#history .table-view .table-view-cell {
   padding-right: 15px;
+}
+@media (min-width: 500px) {
+  #app {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -250px;
+    right: 0;
+    max-width: 500px;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+  }
+  /*
+  #profile {
+    width: 25%;
+  }
+
+  #play {
+    width: 50%;
+    left: 25%;
+  }
+
+  #history {
+    width: 25%;
+    left: 75%;
+  }
+  */
 }

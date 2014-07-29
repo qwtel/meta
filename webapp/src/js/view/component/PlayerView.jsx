@@ -8,16 +8,21 @@ define([
         rank: ''
       }
     },
-    
+
     componentDidMount: function () {
       var self = this;
       this.props.user.get('statSheet').fetch().then(function (statSheet) {
         self.setState(statSheet.attributes);
       });
     },
-    
+
     render: function () {
       var user = this.props.user.toJSON();
+
+      var isOnline;
+      if (new Date(user.updatedAt).getTime() + 1000 * 60 > new Date().getTime()) {
+        isOnline = <div className="dot" />
+      }
 
       var playerView =
         <div className="other">
@@ -30,6 +35,9 @@ define([
             </div>
             <div className="rank dot-pos">
               <span className="dot">{'#' + this.state.rank}</span>
+            </div>
+            <div className="is-online dot-pos">
+              {isOnline}
             </div>
             <div className="lastmoves">
               <div className="move co"/>
@@ -49,7 +57,7 @@ define([
             </div>
           </div>
         </div>;
-      
+
       return playerView;
     }
   });

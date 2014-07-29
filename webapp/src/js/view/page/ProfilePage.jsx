@@ -54,7 +54,7 @@ define([
     render: function () {
       var user = this.props.user.toJSON();
       var profile =
-        <div id="profile" className="content">
+        <div id="profile" className="page content">
           <PlayerView user={this.props.user} />
           <ul className="table-view">
             <div className="input-row">
@@ -66,7 +66,7 @@ define([
               <input type="text" placeholder="Message" ref="message" defaultValue={user.about} />
             </div>
             <div className="content-padded">
-              <button className="btn btn-primary btn-block" onClick={this.onSaveClicked}>Save</button>
+              <button className="btn btn-primary btn-outlined btn-block" onClick={this.onSaveClicked}>Save</button>
             </div>
             <li className="table-view-cell table-view-divider"/>
             <li className="table-view-cell">

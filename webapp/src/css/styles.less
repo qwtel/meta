@@ -13,6 +13,7 @@ body {
   -webkit-touch-callout: none;
   -webkit-text-size-adjust: none;
   -webkit-user-select: none;
+  background: #f8f8f8;
 }
 
 .btn-block {
@@ -25,16 +26,16 @@ body {
   width: 100%;
   margin-bottom: 70px;
 
-  @profilesize: 115px;
+  @profileSize: 115px;
   @bannerHeight: 175px;
 
   .profilepic {
-    width: @profilesize;
-    height: @profilesize;
+    width: @profileSize;
+    height: @profileSize;
     position: absolute;
     left: 50%;
-    margin-left: -(@profilesize / 2);
-    top: (@bannerHeight - (@profilesize / 2));
+    margin-left: -(@profileSize / 2);
+    top: (@bannerHeight - (@profileSize / 2));
 
     img {
       width: 100%;
@@ -49,37 +50,47 @@ body {
       left: 0;
       width: 0;
       height: 0;
-
-      @dotsize: 25px;
-
+    }
+    
+    .dot-style(@dotSize, @bg: #ddd) {
       .dot {
         padding: 0 4px;
         font-size: 12px;
         text-align: center;
-        line-height: @dotsize;
+        line-height: @dotSize;
         position: relative;
-        top: -@dotsize / 2;
-        left: -@dotsize / 2;
+        top: -@dotSize / 2;
+        left: -@dotSize / 2;
         display: inline-block;
-        min-width: @dotsize;
-        height: @dotsize;
-        border-radius: @dotsize / 2;
-        background-color: #ddd;
+        min-width: @dotSize;
+        height: @dotSize;
+        border-radius: @dotSize / 2;
+        background-color: @bg;
       }
     }
 
-    @a: @profilesize / 2;
-    @b: @profilesize / 2;
-    @r: @profilesize / 2;
+    @a: @profileSize / 2;
+    @b: @profileSize / 2;
+    @r: @profileSize / 2;
+    
+    .pos-on-circle(@deg) {
+      left: @a + @r * cos(@deg);
+      top: @b + @r * sin(@deg);
+    }
 
     .level {
-      left: @a + @r * cos(35deg);
-      top: @b + @r * sin(35deg);
+      .pos-on-circle(35deg);
+      .dot-style(25px);
     }
 
     .rank {
-      left: @a + @r * cos(180deg - 35deg);
-      top: @b + @r * sin(180deg - 35deg);
+      .pos-on-circle(180deg - 35deg);
+      .dot-style(25px);
+    }
+    
+    .is-online {
+      .pos-on-circle(-90deg);
+      .dot-style(15px, #5cb85c);
     }
   }
 
@@ -108,6 +119,7 @@ body {
 
     h1, h2, h3, h4, h5, h6, p {
       display: inline-block;
+      position: relative;
       color: #fff;
     }
 
@@ -117,20 +129,19 @@ body {
   }
 }
 
-.history {
+#history ul {
   > *:first-child {
     border-top: none;
   }
 
   .game {
-    padding-right: 15px;
     > * {
       float: left;
       line-height: 50px;
     }
     .move {
       position: relative;
-      width: 80px;
+      width: 75px;
       height: 50px;
 
       .profilepic {
@@ -222,7 +233,7 @@ body {
   }
 }
 
-#profile {
+#profile, #history {
   .table-view {
     margin-bottom: 0;
     border-bottom: 0;
@@ -230,6 +241,38 @@ body {
       padding-right: 15px;
     }
   }
+}
+
+@maxWidth: 500px;
+
+@media(min-width: @maxWidth) {
+  #app {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    margin-left: -@maxWidth / 2;
+    right: 0;
+    max-width: @maxWidth;
+    border-left: 1px solid #ddd;
+    border-right: 1px solid #ddd;
+  }
+
+  /*
+  #profile {
+    width: 25%;
+  }
+
+  #play {
+    width: 50%;
+    left: 25%;
+  }
+
+  #history {
+    width: 25%;
+    left: 75%;
+  }
+  */
 }
 
 

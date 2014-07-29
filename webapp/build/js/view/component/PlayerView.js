@@ -9,16 +9,21 @@ define([
         rank: ''
       }
     },
-    
+
     componentDidMount: function () {
       var self = this;
       this.props.user.get('statSheet').fetch().then(function (statSheet) {
         self.setState(statSheet.attributes);
       });
     },
-    
+
     render: function () {
       var user = this.props.user.toJSON();
+
+      var isOnline;
+      if (new Date(user.updatedAt).getTime() + 1000 * 60 > new Date().getTime()) {
+        isOnline = React.DOM.div({className: "dot"})
+      }
 
       var playerView =
         React.DOM.div({className: "other"}, 
@@ -31,6 +36,9 @@ define([
             ), 
             React.DOM.div({className: "rank dot-pos"}, 
               React.DOM.span({className: "dot"}, '#' + this.state.rank)
+            ), 
+            React.DOM.div({className: "is-online dot-pos"}, 
+              isOnline
             ), 
             React.DOM.div({className: "lastmoves"}, 
               React.DOM.div({className: "move co"}), 
@@ -50,7 +58,7 @@ define([
             )
           )
         );
-      
+
       return playerView;
     }
   });

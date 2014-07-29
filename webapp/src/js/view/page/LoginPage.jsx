@@ -26,7 +26,7 @@ define([
     
     render: function () {
       var loginPage =
-        <div className="content">
+        <div id="login" className="page content">
           <p className="content-padded">
           Meta is a insanely simple mutliplayer game that is loosely based on the
                 {' '}

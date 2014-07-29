@@ -6,7 +6,7 @@ define([
   return React.createClass({
     render: function () {
       var historyPage =
-        <div className="content">
+        <div id="history" className="page content">
           <ul className="table-view history" style={{marginTop: 0}}>
             <li className="table-view-divider">Today</li>
             <HistoryGameView />
