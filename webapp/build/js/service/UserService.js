@@ -9,6 +9,29 @@ define([
   UserService.current = function () {
     return Parse.User.current()
   };
+  
+  /*
+  var statSheet = null;
+  
+  UserService.currentWithStats = function () {
+    return new Promise(function(res, rej) {
+      var user = Parse.User.current();
+      if (statSheet) {
+        user.statSheet = statSheet;
+        res(statSheet);
+      } else {
+        user.get("statSheet").fetch({
+          success: function(stats) {
+            statSheet = stats;
+            user.statSheet = statSheet; // redundant?
+            res(user);
+          },
+          error: rej.bind(this)
+        });
+      }
+    });
+  };
+  */
 
   UserService.currentStats = function () {
     // TODO: Don't expose Parse.Promise
@@ -28,10 +51,12 @@ define([
     });
   };
   
+  var heartbeat = null;
+
   UserService.logOut = function () {
     return new Promise(function (res) {
-      clearInterval(UserService._heartbeat);
-      delete UserService._heartbeat;
+      clearInterval(heartbeat);
+      heartbeat = null;
       Parse.User.logOut();
       res();
     });
@@ -43,10 +68,10 @@ define([
   };
   
   UserService.startHeartbeat = function (cb) {
-    if (!UserService._heartbeat && UserService.current()) {
+    if (!heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
       Parse.User.current().save();
-      UserService._heartbeat = setInterval(function () {
+      heartbeat = setInterval(function () {
         if (UserService.current()) {
           console.log("♥");
           Parse.User.current().save();

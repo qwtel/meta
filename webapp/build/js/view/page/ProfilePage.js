@@ -6,6 +6,7 @@ define([
   'moment'
 ], function (UserService, PlayerView, React, Moment) {
   return React.createClass({
+    // TODO: Don't store this here
     getInitialState: function () {
       return {
         level: '',
@@ -18,6 +19,7 @@ define([
     
     componentDidMount: function () {
       var self = this;
+      // TODO: Don't do this here
       UserService.currentStats()
         .then(function (statSheet) {
           self.setState(statSheet.attributes);

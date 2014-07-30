@@ -1,12 +1,10 @@
-Parse.Cloud.afterSave(Parse.User, function (request, response) {
-  Parse.Cloud.useMasterKey();
-  
-  console.log("Saving User..");
-  
-  var user = request.object;
+Parse.Cloud.afterSave(Parse.User, function (req, res) {
+  var user = req.object;
   
   if (!user.get('statSheet')) {
     console.log("New user, creating StatSheet");
+    
+    Parse.Cloud.useMasterKey();
 
     var StatSheet = Parse.Object.extend("StatSheet");
     var statSheet = new StatSheet();
@@ -25,13 +23,40 @@ Parse.Cloud.afterSave(Parse.User, function (request, response) {
         return user.save();
       }, function (error) {
         console.log('Something when wrong with saving the statSheet', error);
-        response.error(error);
+        res.error(error);
       })
       .then(function () {
-        response.success();
+        res.success();
       }, function(error) {
         console.log('Something when wrong with saving the user', error);
-        response.error(error);
+        res.error(error);
       });
   }
+});
+
+Parse.Cloud.define("temp", function (req, res) {
+  if (req.user.authData.facebook.id == '10202226173755916') {
+    Parse.Cloud.useMasterKey();
+
+    var Bot = Parse.Object.extend("Bot");
+    var bot = new Bot();
+    
+    bot.set({
+      firstName: 'Coop Bot',
+      about: 'I always cooperate',
+      
+    });
+    
+    bot.save({
+      success: res.success,
+      error: res.error
+    });
+  }
+});
+
+Parse.Cloud.define("getGame", function (req, res) {
+  res.success({
+    enemy: 'test',
+    state: 'state'
+  });
 });

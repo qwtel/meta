@@ -21,9 +21,9 @@ define([
       this.initRouter();
       this.startHeartbeat();
     },
-
-    initRouter: function () {
-      window.router = Router({
+    
+    getRoutes: function () {
+      return {
         '': this.onRouteChanged.bind(this, 'login'),
         '/': this.onRouteChanged.bind(this, 'login'),
         'login': this.onRouteChanged.bind(this, 'login'),
@@ -31,7 +31,11 @@ define([
         'history': this.onRouteChanged.bind(this, 'history'),
         'profile': this.onRouteChanged.bind(this, 'profile')
         // TODO: 404
-      });
+      };
+    },
+
+    initRouter: function () {
+      window.router = Router(this.getRoutes());
       window.router.init('/');
     },
 

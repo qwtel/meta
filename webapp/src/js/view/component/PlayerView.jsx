@@ -3,6 +3,7 @@ define([
 ], function (React) {
   return React.createClass({
     getInitialState: function () {
+      // TODO: Don't store this here
       return {
         level: '',
         rank: ''
@@ -10,6 +11,7 @@ define([
     },
 
     componentDidMount: function () {
+      // TODO: Don't do this here
       var self = this;
       this.props.user.get('statSheet').fetch().then(function (statSheet) {
         self.setState(statSheet.attributes);
@@ -18,12 +20,6 @@ define([
 
     render: function () {
       var user = this.props.user.toJSON();
-
-      var isOnline;
-      if (new Date(user.updatedAt).getTime() + 1000 * 60 > new Date().getTime()) {
-        isOnline = <div className="dot" />
-      }
-
       var playerView =
         <div className="other">
           <div className="banner" style={{backgroundImage: "url(" + user.bannerUrl + ")"}} />
@@ -37,14 +33,7 @@ define([
               <span className="dot">{'#' + this.state.rank}</span>
             </div>
             <div className="is-online dot-pos">
-              {isOnline}
-            </div>
-            <div className="lastmoves">
-              <div className="move co"/>
-              <div className="move co"/>
-              <div className="move de"/>
-              <div className="move pa"/>
-              <div className="move co"/>
+              { this.isOnline(user) ? <div className="dot"/> : null }
             </div>
           </div>
           <div className="about content-padded">
@@ -59,6 +48,10 @@ define([
         </div>;
 
       return playerView;
+    },
+
+    isOnline: function (user) {
+      return new Date(user.updatedAt).getTime() + 1000 * 60 > new Date().getTime();
     }
   });
 });
