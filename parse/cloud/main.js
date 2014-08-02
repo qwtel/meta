@@ -1,3 +1,21 @@
+Parse.Cloud.beforeSave(Parse.User, function (req, res) {
+    var user = req.object;
+
+    function validate(key, limit) {
+        var value = user.get(key);
+        if (!value || value.trim().length === 0) {
+            res.error(key + ' missing');
+        } else if (value.trim().length > limit) {
+            user.set(key, value.trim().substring(0, (limit - 1)) + '...');
+        }
+    }
+    
+    validate('firstName', 30);
+    validate('about', 240);
+    
+    res.success();
+});
+
 Parse.Cloud.afterSave(Parse.User, function (req, res) {
   var user = req.object;
   
@@ -43,7 +61,7 @@ Parse.Cloud.define("temp", function (req, res) {
     
     bot.set({
       firstName: 'Coop Bot',
-      about: 'I always cooperate',
+      about: 'I always cooperate'
       
     });
     
