@@ -37,7 +37,7 @@ define([
           {this.state.enemy !== null ? <PlayerView user={this.state.enemy} /> : null}
           <p className="content-padded" style={{paddingTop: 0}}>
             <button className="btn btn-positive btn-block" onClick={this.createOnActionClicked(Action.Cooperate)}>Cooperate</button>
-            <button className="btn btn-primary btn-block" onClick={this.createOnActionClicked(Action.Pass)}>Pass</button>
+            <button className="btn btn-primary btn-block" onClick={this.createOnActionClicked(Action.Pass)}>Escape</button>
             <button className="btn btn-negative btn-block" onClick={this.createOnActionClicked(Action.Defect)}>Defect</button>
           </p>
         </div>;

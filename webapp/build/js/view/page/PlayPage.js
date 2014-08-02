@@ -38,7 +38,7 @@ define([
           this.state.enemy !== null ? PlayerView({user: this.state.enemy}) : null, 
           React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
             React.DOM.button({className: "btn btn-positive btn-block", onClick: this.createOnActionClicked(Action.Cooperate)}, "Cooperate"), 
-            React.DOM.button({className: "btn btn-primary btn-block", onClick: this.createOnActionClicked(Action.Pass)}, "Pass"), 
+            React.DOM.button({className: "btn btn-primary btn-block", onClick: this.createOnActionClicked(Action.Pass)}, "Escape"), 
             React.DOM.button({className: "btn btn-negative btn-block", onClick: this.createOnActionClicked(Action.Defect)}, "Defect")
           )
         );
