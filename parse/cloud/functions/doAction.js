@@ -30,7 +30,6 @@ function doSecondMove(move2, game) {
 
   return Parse.Promise.when(stats1Promise, stats2Promise).then(function (p1Stats, p2Stats) {
     var logic = new GameLogic(game.get('move1'), move2);
-    
     var updatedStats1Promise = updateStatSheet(p1Stats, logic.result1(), game.get('move1'));
     var updatedStats2Promise = updateStatSheet(p2Stats, logic.result2(), move2);
 

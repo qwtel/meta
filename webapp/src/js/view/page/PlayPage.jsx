@@ -21,10 +21,7 @@ define([
             gameState: game.state
           });
         })
-        .catch(function (error) {
-          console.error(error);
-          // TODO
-        });
+        .catch(console.error);
     },
 
     createOnActionClicked: function (action) {
@@ -39,10 +36,7 @@ define([
               gameState: nextGame.state
             });
           })
-          .catch(function (error) {
-            console.error(error);
-            // TODO
-          });
+          .catch(console.error);
       };
     },
 

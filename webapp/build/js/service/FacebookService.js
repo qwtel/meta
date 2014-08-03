@@ -61,6 +61,8 @@ define([
   };
 
   FacebookService.update = FacebookService.fetch;
+  
+  if (window.Debug) window.FacebookService = FacebookService
 
   return FacebookService;
 });

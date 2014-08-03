@@ -8,11 +8,12 @@ define([
     // TODO: Don't store this here
     getInitialState: function () {
       return {
-        level: '',
-        points: '',
-        ppg: '',
-        score: '',
-        rank: ''
+        level: 1,
+        points: 0,
+        ppg: 0,
+        score: 0,
+        rank: 0,
+        numGames: 0
       };
     },
     
@@ -85,7 +86,7 @@ define([
             </li>
             <li className="table-view-cell">
               <span className="pull-left">Points per Game</span>
-              <span className="pull-right">{this.state.points / this.state.numGames}</span>
+              <span className="pull-right">{(this.state.points / this.state.numGames).toFixed(4)}</span>
             </li>
             <li className="table-view-cell">
               <span className="pull-left">Score</span>

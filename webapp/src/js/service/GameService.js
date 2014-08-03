@@ -35,9 +35,21 @@ define([
     });
   };
   
+  GameService.getHistory = function (page) {
+    return new Promise(function (res, rej) {
+      Parse.Cloud.run('getHistory', {
+        page: page
+      }).then(function(xxx) {
+        res(xxx);
+      }, rej);
+    });
+  };
+  
   GameService.clearCache = function() {
     currentGame = undefined;
   };
+  
+  if (window.Debug) window.GameService = GameService
 
   return GameService
 });

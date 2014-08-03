@@ -19,10 +19,7 @@ define([
             window.router.setRoute('play');
           }
         })
-        .catch(function (error, user) {
-          // TODO: popup
-          console.log("User cancelled the Facebook login or did not fully authorize.", error, user);
-        });
+        .catch(console.error);
     },
     
     render: function () {

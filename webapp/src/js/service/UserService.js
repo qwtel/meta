@@ -84,5 +84,7 @@ define([
     */
   };
   
+  if (window.Debug) window.UserService = UserService
+  
   return UserService;
 });
