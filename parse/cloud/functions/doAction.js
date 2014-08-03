@@ -20,22 +20,14 @@ function doSecondMove(move2, game) {
     move2: move2,
     state: GameState.GameOver
   });
-  
-  function getStatSheet(player) {
-    return player.get('statSheet').fetch();
-  }
 
-  var stats1Promise = game.get('player1').fetch().then(getStatSheet);
-  var stats2Promise = game.get('player2').fetch().then(getStatSheet);
+  var logic = new GameLogic(game.get('move1'), move2);
 
-  return Parse.Promise.when(stats1Promise, stats2Promise).then(function (p1Stats, p2Stats) {
-    var logic = new GameLogic(game.get('move1'), move2);
-    var updatedStats1Promise = updateStatSheet(p1Stats, logic.result1(), game.get('move1'));
-    var updatedStats2Promise = updateStatSheet(p2Stats, logic.result2(), move2);
+  var updatedStats1Promise = updateStatSheet(game.get('player1').get('statSheet'), logic.result1(), game.get('move1'));
+  var updatedStats2Promise = updateStatSheet(game.get('player2').get('statSheet'), logic.result2(), move2);
 
-    return Parse.Promise.when(updatedGamePromise, updatedStats1Promise, updatedStats2Promise).then(function () {
-      return game;
-    });
+  return Parse.Promise.when(updatedGamePromise, updatedStats1Promise, updatedStats2Promise).then(function () {
+    return game;
   });
 }
 
@@ -48,7 +40,7 @@ function updateStatSheet(statSheet, result, move) {
     return v;
   }
 
-  function inc(name, by) {
+  function inc(name) {
     return add(name, 1)
   }
 
@@ -78,9 +70,6 @@ function updateStatSheet(statSheet, result, move) {
   });
 }
 
-function updateStats(move2, game) {
-}
-
 function doAction(req) {
   return withMasterKey(function () {
     var action = req.params.action;
@@ -89,12 +78,20 @@ function doAction(req) {
 
     var user = req.user;
 
-    return user.get('currentGame').fetch()
+    return new Parse.Query("Game")
+      .include("player1")
+      .include("player1.statSheet")
+      .include("player2")
+      .include("player2.statSheet")
+      .get(user.get('currentGame').id)
       .then(function (game) {
         switch (game.get('state')) {
-          case GameState.FirstMove: return doFirstMove(action, game);
-          case GameState.SecondMove: return doSecondMove(action, game);
-          case GameState.GameOver: return Parse.Promise.error("Game already over");
+          case GameState.FirstMove:
+            return doFirstMove(action, game);
+          case GameState.SecondMove:
+            return doSecondMove(action, game);
+          case GameState.GameOver:
+            return Parse.Promise.error("Game already over");
         }
       })
       .then(function (game) {

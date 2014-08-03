@@ -10,9 +10,9 @@ var Game = Parse.Object.extend("Game");
 function newGame(req) {
   return withMasterKey(function () {
     var user = req.user;
+    
     var q = new Parse.Query(Bot);
     q.equalTo('botType', BotType.random());
-
     return q.first().then(function (bot) {
       var game = new Game();
 
