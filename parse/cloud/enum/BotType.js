@@ -10,15 +10,15 @@ var BotType = Object.freeze({
   // TODO: Move logic somewhere else
   action: function (botType) {
     switch (botType) {
-      case BotType.Coop:
-        return Action.Cooperate;
-      case BotType.Defect:
-        return Action.Defect;
-      case BotType.Pass:
-        return Action.Pass;
-      case BotType.Random:
-        return Action[Object.keys(Action)[getRandomInt(3)]];
+      case BotType.Coop: return Action.Cooperate;
+      case BotType.Defect: return Action.Defect;
+      case BotType.Pass: return Action.Pass;
+      case BotType.Random: return Action.random();
     }
+  },
+  
+  random: function () {
+    return getRandomInt(4);
   }
 });
 

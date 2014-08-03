@@ -10,7 +10,7 @@ define(function() {
         AppId: "263236870540805",
         ChannelUrl: 'http://metadebug.parseapp.com'
       },
-      HeartbeatInterval: 30000
+      HeartbeatInterval: 300000
     };
   } else {
     Config = {

@@ -1,20 +1,27 @@
-function beforeSavePlayer(req, res) {
+function beforeSavePlayer(req) {
   var user = req.object;
-
-  function validate(key, limit, f) {
+  
+  function limit(key, limit) {
     var value = user.get(key);
-    if (!value || value.trim().length === 0) {
-      res.error(key + ' missing');
-    } else if (value.trim().length > limit) {
+    if (value && value.trim().length > limit) {
       user.set(key, value.trim().substring(0, (limit - 1)) + '...');
     }
   }
+  
+  function required(key) {
+    var value = user.get(key);
+    var result = Parse.Promise.as(true);
+    if (!value || value.trim().length === 0) {
+      //result = Parse.Promise.error(key + ' missing');
+    } 
+    return result;
+  }
 
-  // TODO: validate
-  //validate('firstName', 30);
-  //validate('about', 240);
-
-  res.success();
+  return required('firstName').then(function () {
+    limit('firstName', 30);
+    limit('about', 240);
+    return user;
+  });
 }
 
 module.exports = beforeSavePlayer;

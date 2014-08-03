@@ -81,8 +81,12 @@ define([
               React.DOM.span({className: "pull-right"}, this.state.points)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Games"), 
+              React.DOM.span({className: "pull-right"}, this.state.numGames)
+            ), 
+            React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Points per Game"), 
-              React.DOM.span({className: "pull-right"}, this.state.ppg)
+              React.DOM.span({className: "pull-right"}, this.state.points / this.state.numGames)
             ), 
             React.DOM.li({className: "table-view-cell"}, 
               React.DOM.span({className: "pull-left"}, "Score"), 

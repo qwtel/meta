@@ -94,11 +94,15 @@ body {
     }
   }
 
-  .banner {
+  .banner-wrapper {
     width: 100%;
     height: @bannerHeight;
-    background-position: center center;
-    background-size: cover;
+    .banner {
+      width: 100%;
+      height: @bannerHeight;
+      background-position: center center;
+      background-size: cover;
+    }
   }
 
   .shield {
@@ -223,6 +227,10 @@ body {
 .content-padded {
   padding: 10px;
   margin: 0;
+}
+
+.bar {
+  position: absolute;
 }
 
 .bar-nav {

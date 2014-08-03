@@ -97,7 +97,11 @@ body {
   border-radius: 7.5px;
   background-color: #5cb85c;
 }
-.other .banner {
+.other .banner-wrapper {
+  width: 100%;
+  height: 175px;
+}
+.other .banner-wrapper .banner {
   width: 100%;
   height: 175px;
   background-position: center center;
@@ -214,6 +218,9 @@ body {
 .content-padded {
   padding: 10px;
   margin: 0;
+}
+.bar {
+  position: absolute;
 }
 .bar-nav .badge {
   position: relative;

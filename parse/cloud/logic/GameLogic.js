@@ -1,8 +1,8 @@
 var Action = require('cloud/enum/Action.js');
 
 function GameLogic(move1, move2) {
-  if (!move1 || !Action[move1]) throw new Error();
-  if (!move2 || !Action[move2]) throw new Error();
+  if (!move1) throw Error();
+  if (!move2) throw Error();
   this.move1 = move1;
   this.move2 = move2;
 }

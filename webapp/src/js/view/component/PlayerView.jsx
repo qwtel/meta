@@ -12,20 +12,31 @@ define([
 
     componentDidMount: function () {
       // TODO: Don't do this here
-      var self = this;
+      var statSheet = this.props.user.get('statSh');
+      if (!statSheet) {
+        this.props.user.fetch().then(this.loadStatSheet);
+      } else {
+        this.loadStatSheet();
+      }
+    },
+    
+    loadStatSheet: function () {
       this.props.user.get('statSheet').fetch().then(function (statSheet) {
-        self.setState(statSheet.attributes);
-      });
+        this.setState(statSheet.attributes);
+      }.bind(this));
     },
 
     render: function () {
       var user = this.props.user.toJSON();
+      
       var playerView =
         <div className="other">
-          <div className="banner" style={{backgroundImage: "url(" + user.bannerUrl + ")"}} />
+          <div className="banner-wrapper">
+            { user.bannerUrl ? <div className="banner" style={{backgroundImage: "url(" + user.bannerUrl + ")"}} /> : null }
+          </div>
           <div className="shield"/>
           <div className="profilepic">
-            <img src={user.pictureUrl} />
+            { user.pictureUrl ? <img src={user.pictureUrl} /> : null }
             <div className="level dot-pos">
               <span className="dot">{this.state.level}</span>
             </div>

@@ -8,7 +8,7 @@ define([
   Parse.initialize(Config.Parse.AppId, Config.Parse.JavaScriptKey);
   React.initializeTouchEvents(true);
   
-  function launch() {
+  function main() {
     FastClick.attach(document.body);
     React.renderComponent(<AppView />, document.getElementById("app"));
   }
@@ -23,9 +23,9 @@ define([
 
     var isCordova = document.URL.indexOf('http://') === -1 && document.URL.indexOf('https://') === -1;
     if (isCordova) {
-      document.addEventListener("deviceready", launch, false);
+      document.addEventListener("deviceready", main, false);
     } else {
-      launch();
+      main();
     }
   };
 

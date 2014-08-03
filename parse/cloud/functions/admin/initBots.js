@@ -15,8 +15,8 @@ function createBot(botType, firstName, about) {
   });
 }
 
-function initBots(req, res) {
-  return whenAdmin(req, res)(function () {
+function initBots(req) {
+  return whenAdmin(req)(function () {
     return withMasterKey(function () {
 
       var botsData = [
@@ -27,10 +27,10 @@ function initBots(req, res) {
       ];
 
       var promises = botsData.map(function (botData) {
-        return createBot(botData[0], botData[1], botData[2]);
+        return createBot.apply(undefined, botData);
       });
 
-      Parse.Promise.when(promises).then(res.success, res.error);
+      return Parse.Promise.when(promises);
     });
   });
 }

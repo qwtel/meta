@@ -80,8 +80,12 @@ define([
               <span className="pull-right">{this.state.points}</span>
             </li>
             <li className="table-view-cell">
+              <span className="pull-left">Games</span>
+              <span className="pull-right">{this.state.numGames}</span>
+            </li>
+            <li className="table-view-cell">
               <span className="pull-left">Points per Game</span>
-              <span className="pull-right">{this.state.ppg}</span>
+              <span className="pull-right">{this.state.points / this.state.numGames}</span>
             </li>
             <li className="table-view-cell">
               <span className="pull-left">Score</span>

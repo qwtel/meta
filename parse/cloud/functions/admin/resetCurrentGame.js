@@ -1,11 +1,11 @@
 var whenAdmin = require('cloud/helper/whenAdmin.js');
 var withMasterKey = require('cloud/helper/withMasterKey.js');
 
-function resetCurrentGame(req, res) {
-  return whenAdmin(req, res)(function () {
+function resetCurrentGame(req) {
+  return whenAdmin(req)(function () {
     return withMasterKey(function () {
       req.user.unset("currentGame");
-      req.user.save().then(res.success);
+      return req.user.save();
     });
   });
 }

@@ -68,6 +68,8 @@ define([
   };
   
   UserService.startHeartbeat = function (cb) {
+    // Actually, there's no need for that...
+    /*
     if (!heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
       Parse.User.current().save();
@@ -79,6 +81,7 @@ define([
         }
       }, Config.HeartbeatInterval);
     }
+    */
   };
   
   return UserService;
