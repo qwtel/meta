@@ -18,7 +18,7 @@ define([
           self.setState({
             games: games
           });
-        }, console.error);
+        }, console.error.bind(console));
     },
 
     render: function () {
@@ -30,7 +30,7 @@ define([
       var historyPage =
         <div id="history" className="page content">
           <ul className="table-view history" style={{marginTop: 0}}>
-            <li className="table-view-divider">Games</li>
+            <li className="table-view-divider"/>
             {games}
           </ul>
         </div>;

@@ -20,5 +20,9 @@ LevelLogic.prevLevels = function(level) {
   return prev;
 };
 
+LevelLogic.isLevelUp = function (points, level) {
+  return (points >= LevelLogic.nextLevel(level));
+};
+
 
 module.exports = LevelLogic;

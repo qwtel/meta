@@ -20,9 +20,12 @@ define([
     });
   };
 
-  UserService.currentStats = function () {
-    // TODO: Don't expose Parse.Promise
-    return Parse.User.current().get("statSheet").fetch()
+  UserService.updateStats = function (user) {
+    return new Promise(function (res, rej) {
+      user.get("statSheet")
+        .fetch()
+        .then(res, rej);
+    });
   };
 
   UserService.logIn = function () {
@@ -41,6 +44,7 @@ define([
   var heartbeat = null;
 
   UserService.logOut = function () {
+    // TODO: No promise
     return new Promise(function (res) {
       clearInterval(heartbeat);
       heartbeat = null;
@@ -50,28 +54,25 @@ define([
   };
 
   UserService.save = function (user) {
-    // TODO: Don't expose Parse.Promise
-    return user.save()
+    return new Promise(function (res, rej) {
+      user.save().then(res, rej);
+    });
   };
 
   UserService.startHeartbeat = function (cb) {
-    // Actually, there's no need for that...
-    /*
-     if (!heartbeat && UserService.current()) {
-     console.log("Starting heartbeat...");
-     Parse.User.current().save();
-     heartbeat = setInterval(function () {
-     if (UserService.current()) {
-     console.log("♥");
-     Parse.User.current().save();
-     cb();
-     }
-     }, Config.HeartbeatInterval);
-     }
-     */
+    if (!heartbeat && UserService.current()) {
+      console.log("Starting heartbeat...");
+      Parse.User.current().save().then(cb);
+      heartbeat = setInterval(function () {
+        if (UserService.current()) {
+          console.log("♥");
+          Parse.User.current().save().then(cb);
+        }
+      }, Config.HeartbeatInterval);
+    }
   };
 
-  if (window.Debug) window.UserService = UserService
+  if (window.Debug) window.UserService = UserService;
 
   return UserService;
 });

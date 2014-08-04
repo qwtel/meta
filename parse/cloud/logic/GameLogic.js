@@ -1,6 +1,5 @@
 var Action = require('cloud/enum/Action.js');
 
-
 function GameLogic(move1, move2) {
   this.move1 = Action.values().indexOf(move1);
   this.move2 = Action.values().indexOf(move2);
@@ -34,18 +33,18 @@ function GameLogic(move1, move2) {
 
 GameLogic.Matrix = [
   [
-    [ 1, 1],
-    [ 2, -1],
-    [-1, 2]
+    [ 2, 2],
+    [ 4, -1],
+    [-1, 4]
   ],
   [
-    [-1, 2],
+    [-1, 4],
     [ 0, 0],
-    [ 2, -1]
+    [ 4, -1]
   ],
   [
-    [ 2, -1],
-    [-1, 2],
+    [ 4, -1],
+    [-1, 4],
     [-1, -1]
   ]
 ];

@@ -20,7 +20,7 @@ define([
             game: game
           });
         })
-        .catch(console.error);
+        .catch(console.error.bind(console));
     },
 
     createOnActionClicked: function (action) {
@@ -34,7 +34,7 @@ define([
               game: nextGame
             });
           })
-          .catch(console.error);
+          .catch(console.error.bind(console));
       };
     },
 

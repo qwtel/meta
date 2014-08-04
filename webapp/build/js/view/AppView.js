@@ -13,7 +13,7 @@ define([
     getInitialState: function () {
       return {
         page: null,
-        user: null
+        user: UserService.current()
       }
     },
 
@@ -25,8 +25,8 @@ define([
       UserService.currentWithStats().then(function (user) {
         self.setState({
           user: user
-        })
-      }, console.error)
+        });
+      }, console.error.bind(console))
     },
     
     getRoutes: function () {
@@ -48,8 +48,10 @@ define([
 
     startHeartbeat: function () {
       var self = this;
-      UserService.startHeartbeat(function () {
-        self.forceUpdate();
+      UserService.startHeartbeat(function (user) {
+        self.setState({
+          user: user
+        });
       });
     },
 

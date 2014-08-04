@@ -19,7 +19,7 @@ define([
           self.setState({
             games: games
           });
-        }, console.error);
+        }, console.error.bind(console));
     },
 
     render: function () {
@@ -31,7 +31,7 @@ define([
       var historyPage =
         React.DOM.div({id: "history", className: "page content"}, 
           React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
-            React.DOM.li({className: "table-view-divider"}, "Games"), 
+            React.DOM.li({className: "table-view-divider"}), 
             games
           )
         );

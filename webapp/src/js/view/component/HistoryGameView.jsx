@@ -10,8 +10,6 @@ define([
 
   return React.createClass({
     render: function () {
-      console.log('HistoryGameView render');
-
       var move1 = this.props.game.get('move1');
       var move2 = this.props.game.get('move2');
       

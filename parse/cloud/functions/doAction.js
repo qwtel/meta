@@ -55,7 +55,7 @@ function updateStatSheet(statSheet, result, move) {
   var points = add('points', result);
   var numGames = inc('numGames');
 
-  if (points >= LevelLogic.nextLevel(stats.level)) {
+  if (LevelLogic.isLevelUp(points, stats.level)) {
     inc('level');
   }
 
@@ -63,6 +63,7 @@ function updateStatSheet(statSheet, result, move) {
     numGames: numGames,
     points: points,
     ppg: points / numGames
+    // TODO: score, ranking
   });
 }
 
