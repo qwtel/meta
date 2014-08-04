@@ -56,7 +56,9 @@ define([
           bannerOffset: profile.cover.offset_y
         });
 
-        UserService.save(user)
+        UserService.save(user).then(function (user) {
+          return user.fetch();
+        })
       });
   };
 

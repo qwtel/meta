@@ -1,9 +1,10 @@
-var GameState = Object.freeze({
+var Enum = require('cloud/enum/Enum.js');
+
+var GameState = new Enum({
   FirstMove: 0,
   SecondMove: 1,
-  GameOver: 2,
-  
-  // TODO: Move logic somewhere else
+  GameOver: 2
+}, {
   next: function (gameState) {
     switch (gameState) {
       case GameState.FirstMove: return GameState.SecondMove;

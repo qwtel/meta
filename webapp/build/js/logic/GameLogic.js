@@ -1,54 +1,58 @@
 define([
-  'config/Action'
+  'enum/Action'
 ], function (Action) {
-  
+
   function GameLogic(move1, move2) {
-    if (!move1) throw Error();
-    if (!move2) throw Error();
-    this.move1 = move1;
-    this.move2 = move2;
+    this.move1 = Action.values().indexOf(move1);
+    this.move2 = Action.values().indexOf(move2);
+    if (this.move1 === -1) throw Error();
+    if (this.move2 === -1) throw Error();
   }
 
   /*
    GameLogic.Matrix = [
-   [[1, 1], [2, -1], [-1, 2]],
-   [[-1, 2], [0, 0], [2, -1]],
-   [[2, -1], [-1, 2], [-1, -1]]
+   [[ 1,  1], [ 2, -1], [-1,  2]], // E[X] = [ 2, 2]
+   [[-1,  3], [ 0,  0], [ 3, -1]], // E[X] = [ 2, 2] 
+   [[ 4, -1], [-1,  4], [-1, -1]]  // E[X] = [ 2, 2] 
    ];
    */
 
+  /*
+   GameLogic.Matrix = [
+   [[ 2,  2], [ 4, -1], [-1,  4]], // E[X] = [ 5, 5]
+   [[-1,  4], [ 0,  0], [ 4, -1]], // E[X] = [ 3, 3] 
+   [[ 4, -1], [-1,  4], [-1, -1]]  // E[X] = [ 2, 2] 
+   ];
+   */
+
+  /*
+   GameLogic.Matrix = [
+   [[ 1,  1], [ 2, -1], [-1,  2]], // E[X] = [ 2, 2]
+   [[-1,  2], [ 0,  0], [ 2, -1]], // E[X] = [ 1, 1] 
+   [[ 2, -1], [-1,  2], [-1, -1]]  // E[X] = [ 0, 0] 
+   ];
+   */
+
+  GameLogic.Matrix = [
+    [
+      [ 1, 1],
+      [ 2, -1],
+      [-1, 2]
+    ],
+    [
+      [-1, 2],
+      [ 0, 0],
+      [ 2, -1]
+    ],
+    [
+      [ 2, -1],
+      [-1, 2],
+      [-1, -1]
+    ]
+  ];
+
   GameLogic.prototype.result = function () {
-    switch (this.move1) {
-      case Action.Cooperate:
-        switch (this.move2) {
-          case Action.Cooperate:
-            return [1, 1];
-          case Action.Pass:
-            return [2, -1];
-          case Action.Defect:
-            return [-1, 2];
-        }
-        break;
-      case Action.Pass:
-        switch (this.move2) {
-          case Action.Cooperate:
-            return [-1, 2];
-          case Action.Pass:
-            return [0, 0];
-          case Action.Defect:
-            return [2, -1];
-        }
-        break;
-      case Action.Defect:
-        switch (this.move2) {
-          case Action.Cooperate:
-            return [2, -1];
-          case Action.Pass:
-            return [-1, 2];
-          case Action.Defect:
-            return [-1, -1];
-        }
-    }
+    return GameLogic.Matrix[this.move1][this.move2];
   };
 
   GameLogic.prototype.result1 = function () {

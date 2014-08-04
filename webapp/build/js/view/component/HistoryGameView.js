@@ -15,7 +15,7 @@ define([
 
       var move1 = this.props.game.get('move1');
       var move2 = this.props.game.get('move2');
-
+      
       var logic = new GameLogic(move1, move2);
 
       var r1 = logic.result1();

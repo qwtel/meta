@@ -1,14 +1,13 @@
 define([
   'service/GameService',
   'view/component/PlayerView',
-  'config/Action',
+  'enum/Action',
   'react'
 ], function (GameService, PlayerView, Action, React) {
   return React.createClass({
     getInitialState: function () {
       return {
-        enemy: null,
-        gameState: null
+        game: null
       };
     },
 
@@ -17,8 +16,7 @@ define([
       GameService.getGame()
         .then(function (game) {
           self.setState({
-            enemy: game.enemy,
-            gameState: game.state
+            game: game
           });
         })
         .catch(console.error);
@@ -32,8 +30,7 @@ define([
             var game = res[0];
             var nextGame = res[1];
             self.setState({
-              enemy: nextGame.enemy,
-              gameState: nextGame.state
+              game: nextGame
             });
           })
           .catch(console.error);
@@ -43,7 +40,7 @@ define([
     render: function () {
       var playPage =
         <div id="play" className="page content">
-          {this.state.enemy ? <PlayerView user={this.state.enemy} /> : null}
+          {this.state.game ? <PlayerView user={this.state.game.get('player1')} /> : null}
           <p className="content-padded" style={{paddingTop: 0}}>
             <button className="btn btn-positive btn-block" onClick={this.createOnActionClicked(Action.Cooperate)}>Cooperate</button>
             <button className="btn btn-primary btn-block" onClick={this.createOnActionClicked(Action.Pass)}>Escape</button>

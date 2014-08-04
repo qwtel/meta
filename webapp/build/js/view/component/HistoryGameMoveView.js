@@ -1,7 +1,7 @@
 /** @jsx React.DOM */
 define([
   'service/UserService',
-  'config/Action',
+  'enum/Action',
   'react'
 ], function (UserService, Action, React) {
   return React.createClass({

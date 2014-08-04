@@ -23,8 +23,10 @@ function doSecondMove(move2, game) {
 
   var logic = new GameLogic(game.get('move1'), move2);
 
-  var updatedStats1Promise = updateStatSheet(game.get('player1').get('statSheet'), logic.result1(), game.get('move1'));
-  var updatedStats2Promise = updateStatSheet(game.get('player2').get('statSheet'), logic.result2(), move2);
+  var statSheet1 = game.get('player1').get('statSheet');
+  var statSheet2 = game.get('player2').get('statSheet');
+  var updatedStats1Promise = updateStatSheet(statSheet1, logic.result1(), game.get('move1'));
+  var updatedStats2Promise = updateStatSheet(statSheet2, logic.result2(), move2);
 
   return Parse.Promise.when(updatedGamePromise, updatedStats1Promise, updatedStats2Promise).then(function () {
     return game;
@@ -45,15 +47,9 @@ function updateStatSheet(statSheet, result, move) {
   }
 
   switch (move) {
-    case Action.Cooperate:
-      inc('numCoop');
-      break;
-    case Action.Pass:
-      inc('numPass');
-      break;
-    case Action.Defect:
-      inc('numDefect');
-      break;
+    case Action.Cooperate: inc('numCoop'); break;
+    case Action.Pass: inc('numPass'); break;
+    case Action.Defect: inc('numDefect'); break;
   }
 
   var points = add('points', result);
@@ -77,28 +73,27 @@ function doAction(req) {
     // TODO: validate action
 
     var user = req.user;
-
-    return new Parse.Query("Game")
-      .include("player1")
+    
+    // TODO: include only on second move
+    var updatedGamePromise = new Parse.Query("Game")
       .include("player1.statSheet")
-      .include("player2")
       .include("player2.statSheet")
       .get(user.get('currentGame').id)
       .then(function (game) {
         switch (game.get('state')) {
-          case GameState.FirstMove:
-            return doFirstMove(action, game);
-          case GameState.SecondMove:
-            return doSecondMove(action, game);
-          case GameState.GameOver:
-            return Parse.Promise.error("Game already over");
+          case GameState.FirstMove: return doFirstMove(action, game);
+          case GameState.SecondMove: return doSecondMove(action, game);
+          case GameState.GameOver: return Parse.Promise.error("Game already over");
         }
-      })
-      .then(function (game) {
-        return newGame(req).then(function (nextGame) {
-          return [game, nextGame]
-        });
       });
+
+    var newGamePromise = newGame(req).then(function (nextGame) {
+      return nextGame
+    });
+    
+    return Parse.Promise.when(updatedGamePromise, newGamePromise).then(function(game, newGame) {
+      return [game, newGame];
+    });
   });
 }
 

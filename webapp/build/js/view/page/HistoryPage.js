@@ -18,9 +18,8 @@ define([
         .then(function (games) {
           self.setState({
             games: games
-          })
-        })
-        .catch(console.error)
+          });
+        }, console.error);
     },
 
     render: function () {

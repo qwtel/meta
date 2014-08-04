@@ -5,30 +5,14 @@ define([
   'moment'
 ], function (UserService, PlayerView, React, Moment) {
   return React.createClass({
-    // TODO: Don't store this here
-    getInitialState: function () {
-      return {
-        level: 1,
-        points: 0,
-        ppg: 0,
-        score: 0,
-        rank: 0,
-        numGames: 0
-      };
-    },
-    
     componentDidMount: function () {
       var self = this;
-      // TODO: Don't do this here
       UserService.currentStats()
-        .then(function (statSheet) {
-          self.setState(statSheet.attributes);
-        }, function(error) {
-          console.error("Couldn't load stat sheet", error);
-          // TODO: Popup
-        });
+        .then(function () {
+          self.forceUpdate();
+        }, console.error);
     },
-    
+
     onSaveClicked: function () {
       var firstName = this.refs.name.getDOMNode().value;
       var about = this.refs.message.getDOMNode().value;
@@ -55,64 +39,70 @@ define([
     },
 
     render: function () {
-      var user = this.props.user.toJSON();
-      var profile =
-        <div id="profile" className="page content">
-          <PlayerView user={this.props.user} />
-          <ul className="table-view">
-            <div className="input-row">
-              <label>Name</label>
-              <input type="text" placeholder="Name" ref="name" defaultValue={user.firstName} />
-            </div>
-            <div className="input-row">
-              <label>Message</label>
-              <input type="text" placeholder="Message" ref="message" defaultValue={user.about} />
-            </div>
-            <div className="content-padded">
-              <button className="btn btn-primary btn-outlined btn-block" onClick={this.onSaveClicked}>Save</button>
-            </div>
-            <li className="table-view-cell table-view-divider"/>
-            <li className="table-view-cell">
-              <span className="pull-left">Level</span>
-              <span className="pull-right">{this.state.level}</span>
-            </li>
-            <li className="table-view-cell">
-              <span className="pull-left">Points</span>
-              <span className="pull-right">{this.state.points}</span>
-            </li>
-            <li className="table-view-cell">
-              <span className="pull-left">Games</span>
-              <span className="pull-right">{this.state.numGames}</span>
-            </li>
-            <li className="table-view-cell">
-              <span className="pull-left">Points per Game</span>
-              <span className="pull-right">{(this.state.points / this.state.numGames).toFixed(4)}</span>
-            </li>
-            <li className="table-view-cell">
-              <span className="pull-left">Score</span>
-              <span className="pull-right">{this.state.score}</span>
-            </li>
-            <li className="table-view-cell">
-              <span className="pull-left">Rank</span>
-              <span className="pull-right">{'#' + this.state.rank}</span>
-            </li>
-            <li className="table-view-cell table-view-divider"/>
-            <li className="table-view-cell">
-              <span className="pull-left">Member since</span>
-              <span className="pull-right">{Moment(user.createdAt).format('L')}</span>
-            </li>
-            <li className="table-view-cell">
-              <span className="pull-left">Last online</span>
-              <span className="pull-right">{Moment(user.updatedAt).format('LLLL')}</span>
-            </li>
-            <li className="table-view-cell table-view-divider"/>
-            <div className="content-padded">
-              <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
-              <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
-              <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
-            </div>
-          </ul>
-        </div>;
+      var profile = null;
+      if (this.props.user) {
+        var user = this.props.user.toJSON();
+        var stats = this.props.user.get('statSheet').toJSON();
+
+        profile =
+          <div id="profile" className="page content">
+            <PlayerView user={this.props.user} />
+            <ul className="table-view">
+              <div className="input-row">
+                <label>Name</label>
+                <input type="text" placeholder="Name" ref="name" defaultValue={user.firstName} />
+              </div>
+              <div className="input-row">
+                <label>Message</label>
+                <input type="text" placeholder="Message" ref="message" defaultValue={user.about} />
+              </div>
+              <div className="content-padded">
+                <button className="btn btn-primary btn-outlined btn-block" onClick={this.onSaveClicked}>Save</button>
+              </div>
+              <li className="table-view-cell table-view-divider"/>
+              <li className="table-view-cell">
+                <span className="pull-left">Level</span>
+                <span className="pull-right">{stats.level}</span>
+              </li>
+              <li className="table-view-cell">
+                <span className="pull-left">Points</span>
+                <span className="pull-right">{stats.points}</span>
+              </li>
+              <li className="table-view-cell">
+                <span className="pull-left">Games</span>
+                <span className="pull-right">{stats.numGames}</span>
+              </li>
+              <li className="table-view-cell">
+                <span className="pull-left">Points per Game</span>
+                <span className="pull-right">{(stats.points / stats.numGames).toFixed(4)}</span>
+              </li>
+              <li className="table-view-cell">
+                <span className="pull-left">Score</span>
+                <span className="pull-right">{stats.score}</span>
+              </li>
+              <li className="table-view-cell">
+                <span className="pull-left">Rank</span>
+                <span className="pull-right">{'#' + stats.rank}</span>
+              </li>
+              <li className="table-view-cell table-view-divider"/>
+              <li className="table-view-cell">
+                <span className="pull-left">Member since</span>
+                <span className="pull-right">{Moment(user.createdAt).format('L')}</span>
+              </li>
+              <li className="table-view-cell">
+                <span className="pull-left">Last online</span>
+                <span className="pull-right">{Moment(user.updatedAt).format('LLLL')}</span>
+              </li>
+              <li className="table-view-cell table-view-divider"/>
+              <div className="content-padded">
+                <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
+                <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
+                <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
+              </div>
+            </ul>
+          </div>;
+      }
+
       return profile;
     }
   });

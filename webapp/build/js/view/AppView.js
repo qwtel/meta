@@ -1,7 +1,6 @@
 /** @jsx React.DOM */
 define([
   'service/UserService',
-  'service/FacebookService',
   'view/page/LoginPage',
   'view/page/ProfilePage',
   'view/page/HistoryPage',
@@ -9,17 +8,25 @@ define([
   'view/component/NavBarView',
   'react',
   'director'
-], function (UserService, FacebookService, LoginPage, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
+], function (UserService, LoginPage, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
   return React.createClass({
     getInitialState: function () {
       return {
-        page: null
+        page: null,
+        user: null
       }
     },
 
     componentDidMount: function () {
       this.initRouter();
       this.startHeartbeat();
+      
+      var self = this;
+      UserService.currentWithStats().then(function (user) {
+        self.setState({
+          user: user
+        })
+      }, console.error)
     },
     
     getRoutes: function () {
@@ -63,21 +70,21 @@ define([
 
     render: function () {
       if (!this.state.page) return null;
-
+      
       var page;
       if (this.state.page === 'login') {
         page = LoginPage(null);
       } else if (this.state.page === 'profile') {
-        page = ProfilePage({user: UserService.current()});
+        page = ProfilePage({user: this.state.user});
       } else if (this.state.page === 'history') {
-        page = HistoryPage({user: UserService.current()});
+        page = HistoryPage({user: this.state.user});
       } else if (this.state.page === 'play') {
-        page = PlayPage({user: UserService.current()});
+        page = PlayPage({user: this.state.user});
       }
 
       return (
         React.DOM.div(null, 
-          NavBarView({page: this.state.page, newHistory: 2}), 
+          NavBarView({page: this.state.page, newHistory: 0}), 
           page
         )
         );

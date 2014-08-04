@@ -1,12 +1,13 @@
+var Enum = require('cloud/enum/Enum.js');
 var getRandomInt = require('cloud/helper/getRandomInt.js');
 
-var Action = Object.freeze({
+var Action = new Enum({
   Cooperate: 'cooperate',
   Pass: 'pass',
-  Defect: 'defect',
+  Defect: 'defect'
+}, {
   random: function () {
-    // TODO: Don't do fucking shit like that
-    return ['cooperate', 'pass', 'defect'][getRandomInt(3)];
+    return Action.values()[getRandomInt(Action.keys().length)];
   }
 });
 
