@@ -48,12 +48,21 @@ define([
               'Play'
             );
       }
+      
+      var meter = null;
+      if (this.props.width !== undefined) {
+        meter =
+          React.DOM.div({className: "meter"}, 
+            React.DOM.span({style: {width: (this.props.width * 100) + "%"}})
+          )
+      }
 
       var header =
           React.DOM.header({className: "bar bar-nav"}, 
             left, 
             right, 
-            React.DOM.h1({className: "title"}, Titles[this.props.page])
+            React.DOM.h1({className: "title"}, Titles[this.props.page]), 
+            meter
           );
 
       return header;

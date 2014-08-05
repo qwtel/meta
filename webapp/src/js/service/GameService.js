@@ -1,4 +1,7 @@
-define(function () {
+define([
+  'logic/GameLogic',
+  'logic/LevelLogic'
+], function (GameLogic, LevelLogic) {
   
   // keep in cache
   var currentGame;
@@ -27,8 +30,22 @@ define(function () {
         action: action
       }).then(function (xxx) {
         // TODO: Handle response (next game, notifications?)
-        currentGame = res[1];
-        user.set('currentGame', currentGame);
+        
+        var lastGame = xxx[0];
+        currentGame = xxx[1];
+
+        var logic = new GameLogic(lastGame.get('move1'), lastGame.get('move2'));
+        var statSheet = user.get('statSheet');
+        
+        statSheet.set({
+          level: LevelLogic.isLevelUp(statSheet.get('points') + logic.result2(), statSheet.get('level')) ? statSheet.get('level') + 1 : statSheet.get('level'),
+          points: statSheet.get('points') + logic.result2()
+        });
+        
+        user.set({
+          currentGame: currentGame
+        });
+        
         res(xxx);
       }, rej);
     });

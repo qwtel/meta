@@ -47,12 +47,21 @@ define([
               {'Play'}
             </a>;
       }
+      
+      var meter = null;
+      if (this.props.width !== undefined) {
+        meter =
+          <div className="meter">
+            <span style={{width: (this.props.width * 100) + "%"}} />
+          </div>
+      }
 
       var header =
           <header className="bar bar-nav">
             {left}
             {right}
             <h1 className="title">{Titles[this.props.page]}</h1>
+            {meter}
           </header>;
 
       return header;
