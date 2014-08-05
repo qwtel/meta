@@ -30,6 +30,7 @@ define([
         action: action
       }).then(function (xxx) {
         // TODO: Handle response (next game, notifications?)
+        currentGame = res[1];
         res(xxx);
       }, rej);
     });
@@ -49,7 +50,8 @@ define([
     currentGame = undefined;
   };
   
-  if (window.Debug) window.GameService = GameService
+  // TODO: not good
+  window.GameService = GameService;
 
   return GameService
 });

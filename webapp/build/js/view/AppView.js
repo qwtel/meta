@@ -1,43 +1,32 @@
 /** @jsx React.DOM */
 define([
   'service/UserService',
-  'view/page/LoginPage',
-  'view/page/ProfilePage',
-  'view/page/HistoryPage',
-  'view/page/PlayPage',
-  'view/component/NavBarView',
+  'view/world/LoginWorld',
+  'view/world/AppWorld',
+  'enum/Page',
   'react',
   'director'
-], function (UserService, LoginPage, ProfilePage, HistoryPage, PlayPage, NavBarView, React, Router) {
+], function (UserService, LoginWorld, AppWorld, Page, React, Router) {
   return React.createClass({
     getInitialState: function () {
       return {
-        page: null,
-        user: UserService.current()
+        page: Page.Play
       }
     },
 
     componentDidMount: function () {
       this.initRouter();
-      this.startHeartbeat();
-      
-      var self = this;
-      UserService.currentWithStats().then(function (user) {
-        self.setState({
-          user: user
-        });
-      }, console.error.bind(console))
     },
-    
+
     getRoutes: function () {
+      var routes;
       return {
-        '': this.onRouteChanged.bind(this, 'login'),
-        '/': this.onRouteChanged.bind(this, 'login'),
-        'login': this.onRouteChanged.bind(this, 'login'),
-        'play': this.onRouteChanged.bind(this, 'play'),
-        'history': this.onRouteChanged.bind(this, 'history'),
-        'profile': this.onRouteChanged.bind(this, 'profile')
-        // TODO: 404
+        '/': this.onRouteChanged.bind(this, Page.Play),
+        '/login': this.onRouteChanged.bind(this, Page.Login),
+        '/play': this.onRouteChanged.bind(this, Page.Play),
+        '/history': this.onRouteChanged.bind(this, Page.History),
+        '/profile': this.onRouteChanged.bind(this, Page.Profile),
+        '*': this.onRouteChanged.bind(this, Page.NotFound)
       };
     },
 
@@ -46,50 +35,28 @@ define([
       window.router.init('/');
     },
 
-    startHeartbeat: function () {
-      var self = this;
-      UserService.startHeartbeat(function (user) {
-        self.setState({
-          user: user
-        });
-      });
-    },
-
     onRouteChanged: function (page) {
       if (!UserService.current()) {
-        window.router.setRoute('login');
-        this.setPage('login');
+        window.router.setRoute(Page.Login);
+        this.setState({
+          page: Page.Login
+        });
       } else {
-        this.setPage(page);
+        this.setState({
+          page: page
+        });
       }
-    },
-
-    setPage: function (page) {
-      this.setState({
-        page: page
-      })
     },
 
     render: function () {
-      if (!this.state.page) return null;
-      
-      var page;
-      if (this.state.page === 'login') {
-        page = LoginPage(null);
-      } else if (this.state.page === 'profile') {
-        page = ProfilePage({user: this.state.user});
-      } else if (this.state.page === 'history') {
-        page = HistoryPage({user: this.state.user});
-      } else if (this.state.page === 'play') {
-        page = PlayPage({user: this.state.user});
+      var content;
+      if (UserService.current()) {
+        content = AppWorld({page: this.state.page});
+      } else {
+        content = LoginWorld(null)
       }
 
-      return (
-        React.DOM.div(null, 
-          NavBarView({page: this.state.page, newHistory: 0}), 
-          page
-        )
-        );
+      return content;
     }
-  })
+  });
 });

@@ -10,21 +10,15 @@ define([
     return Parse.User.current()
   };
 
-
-  UserService.currentWithStats = function () {
-    return new Promise(function (res, rej) {
-      new Parse.Query(Parse.User)
-        .include('statSheet')
-        .get(Parse.User.current().id)
-        .then(res, rej)
-    });
-  };
-
   UserService.updateStats = function (user) {
     return new Promise(function (res, rej) {
-      user.get("statSheet")
-        .fetch()
-        .then(res, rej);
+      if (user.get("statSheet")) {
+        user.get("statSheet")
+          .fetch()
+          .then(res, rej);
+      } else {
+        rej('No statSheet on user!');
+      }
     });
   };
 
@@ -44,13 +38,9 @@ define([
   var heartbeat = null;
 
   UserService.logOut = function () {
-    // TODO: No promise
-    return new Promise(function (res) {
-      clearInterval(heartbeat);
-      heartbeat = null;
-      Parse.User.logOut();
-      res();
-    });
+    window.GameService.clearCache(); // TODO: meh...
+    UserService.stopHeartbeat();
+    Parse.User.logOut();
   };
 
   UserService.save = function (user) {
@@ -59,6 +49,12 @@ define([
     });
   };
 
+  UserService.stopHeartbeat = function () {
+    console.log("Stopping heartbeat...");
+    clearInterval(heartbeat);
+    heartbeat = null;
+  };
+  
   UserService.startHeartbeat = function (cb) {
     if (!heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");

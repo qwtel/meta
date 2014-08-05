@@ -2,17 +2,35 @@
 define([
   'service/UserService',
   'view/component/PlayerView',
+  'view/common/Loading',
+  'view/common/Error',
+  'enum/Page',
   'react',
   'moment'
-], function (UserService, PlayerView, React, Moment) {
+], function (UserService, PlayerView, Loading, Error, Page, React, Moment) {
   return React.createClass({
+    getInitialState: function () {
+      return {
+        loading: true,
+        error: false
+      }
+    },
+
     componentDidMount: function () {
       var self = this;
       if (this.props.user) {
         UserService.updateStats(this.props.user)
           .then(function () {
-            self.forceUpdate();
-          }, console.error.bind(console));
+            self.setState({
+              loading: false
+            });
+          }, function (error) {
+            console.error(error);
+            self.setState({
+              loading: false,
+              error: true
+            });
+          });
       }
     },
 
@@ -35,10 +53,8 @@ define([
     },
 
     onLogoutClicked: function () {
-      UserService.logOut()
-        .then(function () {
-          window.router.setRoute('login');
-        });
+      UserService.logOut();
+      window.router.setRoute(Page.Login);
     },
 
     render: function () {
@@ -64,36 +80,42 @@ define([
             React.DOM.input({type: "text", placeholder: "Message", ref: "message", defaultValue: user.about})
           ),
           React.DOM.div({className: "content-padded"}, 
-            React.DOM.button({className: "btn btn-primary btn-outlined btn-block", onClick: this.onSaveClicked}, "Save")
+            React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.onSaveClicked}, "Save")
           )
         ];
 
-        statSheet = [
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Level"), 
-            React.DOM.span({className: "pull-right"}, stats.level)
-          ),
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Points"), 
-            React.DOM.span({className: "pull-right"}, stats.points)
-          ),
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Games"), 
-            React.DOM.span({className: "pull-right"}, stats.numGames)
-          ),
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Points per Game"), 
-            React.DOM.span({className: "pull-right"}, (stats.points / stats.numGames).toFixed(4))
-          ),
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Score"), 
-            React.DOM.span({className: "pull-right"}, stats.score)
-          ),
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Rank"), 
-            React.DOM.span({className: "pull-right"}, '#' + stats.rank)
-          )
-        ];
+        if (this.state.error) {
+          statSheet = Error(null);
+        } else if (this.state.loading) {
+          statSheet = Loading(null)
+        } else {
+          statSheet = [
+            React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Level"), 
+              React.DOM.span({className: "pull-right"}, stats.level)
+            ),
+            React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Points"), 
+              React.DOM.span({className: "pull-right"}, stats.points)
+            ),
+            React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Games"), 
+              React.DOM.span({className: "pull-right"}, stats.numGames)
+            ),
+            React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Points per Game"), 
+              React.DOM.span({className: "pull-right"}, (stats.points / stats.numGames).toFixed(4))
+            ),
+            React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Score"), 
+              React.DOM.span({className: "pull-right"}, stats.score)
+            ),
+            React.DOM.li({className: "table-view-cell"}, 
+              React.DOM.span({className: "pull-left"}, "Rank"), 
+              React.DOM.span({className: "pull-right"}, '#' + stats.rank)
+            )
+          ];
+        }
 
         timeStuff = [
           React.DOM.li({className: "table-view-cell"}, 
@@ -127,7 +149,6 @@ define([
             dangerZone
           )
         );
-
       return profile;
     }
   });

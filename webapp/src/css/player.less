@@ -1,0 +1,111 @@
+.other {
+  position: relative;
+  width: 100%;
+  margin-bottom: 70px;
+
+  @profileSize: 115px;
+  @bannerHeight: 175px;
+
+  .profilepic {
+    width: @profileSize;
+    height: @profileSize;
+    position: absolute;
+    left: 50%;
+    margin-left: -(@profileSize / 2);
+    top: (@bannerHeight - (@profileSize / 2));
+
+    img {
+      width: 100%;
+      height: 100%;
+      border-radius: 100%;
+      background: #000;
+    }
+
+    .dot-pos {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .dot-style(@dotSize, @bg: #ddd) {
+      .dot {
+        padding: 0 4px;
+        font-size: 12px;
+        text-align: center;
+        line-height: @dotSize;
+        position: relative;
+        top: -@dotSize / 2;
+        left: -@dotSize / 2;
+        display: inline-block;
+        min-width: @dotSize;
+        height: @dotSize;
+        border-radius: @dotSize / 2;
+        background-color: @bg;
+      }
+    }
+
+    @a: @profileSize / 2;
+    @b: @profileSize / 2;
+    @r: @profileSize / 2;
+
+    .pos-on-circle(@deg) {
+      left: @a + @r * cos(@deg);
+      top: @b + @r * sin(@deg);
+    }
+
+    .level {
+      .pos-on-circle(35deg);
+      .dot-style(25px);
+    }
+
+    .rank {
+      .pos-on-circle(180deg - 35deg);
+      .dot-style(25px);
+    }
+
+    .is-online {
+      .pos-on-circle(-90deg);
+      .dot-style(15px, #5cb85c);
+    }
+  }
+
+  .banner-wrapper {
+    width: 100%;
+    height: @bannerHeight;
+    .banner {
+      width: 100%;
+      height: @bannerHeight;
+      background-position: center center;
+      background-size: cover;
+    }
+  }
+
+  .shield {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: @bannerHeight * 0.67;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+  }
+
+  .about {
+    width: 100%;
+    text-align: center;
+    position: absolute;
+    top: 5px;
+    left: 0;
+
+    h1, h2, h3, h4, h5, h6, p {
+      display: inline-block;
+      position: relative;
+      color: #fff;
+    }
+
+    p {
+      font-weight: 500;
+    }
+  }
+}

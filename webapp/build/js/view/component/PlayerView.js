@@ -5,7 +5,21 @@ define([
   return React.createClass({
     render: function () {
       var user = this.props.user.toJSON();
-      
+      var statsSheet = this.props.user.get('statSheet');
+
+      var dots = null;
+      var level, rank;
+      if (statsSheet && (level = statsSheet.get('level')) !== undefined && (rank = statsSheet.get('rank')) !== undefined) {
+        dots = [
+          React.DOM.div({className: "level dot-pos"}, 
+            React.DOM.span({className: "dot"}, level)
+          ),
+          React.DOM.div({className: "rank dot-pos"}, 
+            React.DOM.span({className: "dot"}, '#' + rank)
+          )
+        ];
+      }
+
       var playerView =
         React.DOM.div({className: "other"}, 
           React.DOM.div({className: "banner-wrapper"}, 
@@ -14,12 +28,7 @@ define([
           React.DOM.div({className: "shield"}), 
           React.DOM.div({className: "profilepic"}, 
              user.pictureUrl ? React.DOM.img({src: user.pictureUrl}) : null, 
-            React.DOM.div({className: "level dot-pos"}, 
-              React.DOM.span({className: "dot"}, this.props.user.get('statSheet').get('level'))
-            ), 
-            React.DOM.div({className: "rank dot-pos"}, 
-              React.DOM.span({className: "dot"}, '#' + this.props.user.get('statSheet').get('rank'))
-            ), 
+            dots, 
             React.DOM.div({className: "is-online dot-pos"}, 
                this.isOnline(user) ? React.DOM.div({className: "dot"}) : null
             )
