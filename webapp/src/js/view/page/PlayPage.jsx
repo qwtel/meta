@@ -10,30 +10,35 @@ define([
   return React.createClass({
     getInitialState: function () {
       return {
-        loading: true,
+        game: this.props.user.get('currentGame'),
+        loading: false,
         error: false,
         lastGame: null,
-        game: null,
         showResult: false,
         loadingResult: false
       };
     },
 
     componentDidMount: function () {
-      var self = this;
-      GameService.getGame()
-        .then(function (game) {
-          self.setState({
-            loading: false,
-            game: game
-          });
-        }, function (error) {
-          console.error(error);
-          self.setState({
-            loading: false,
-            error: true
-          });
+      if (!this.state.game) {
+        this.setState({
+          loading: true
         });
+        var self = this;
+        GameService.getGame()
+          .then(function (game) {
+            self.setState({
+              loading: false,
+              game: game
+            });
+          }, function (error) {
+            console.error(error);
+            self.setState({
+              loading: false,
+              error: true
+            });
+          });
+      }
     },
 
     createOnActionClicked: function (action) {

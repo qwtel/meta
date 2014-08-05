@@ -1,8 +1,5 @@
-define([
-  'promise',
-  'parse'
-], function (Promise, Parse) {
-
+define(function () {
+  
   // keep in cache
   var currentGame;
 

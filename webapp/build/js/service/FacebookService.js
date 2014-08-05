@@ -1,7 +1,6 @@
 define([
-  'service/UserService',
-  'promise'
-], function (UserService, Promise) {
+  'service/UserService'
+], function (UserService) {
   function FacebookService() {
   }
 

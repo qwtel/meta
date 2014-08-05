@@ -4,9 +4,8 @@ define([
   'service/FacebookService',
   'view/component/NavBarView',
   'enum/Page',
-  'promise',
   'react'
-], function (UserService, FacebookService, NavBarView, Page, Promise, React) {
+], function (UserService, FacebookService, NavBarView, Page, React) {
   return React.createClass({
     onLoginClicked: function () {
       UserService.logIn()

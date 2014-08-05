@@ -1,8 +1,6 @@
 define([
-  'config/Config',
-  'promise',
-  'parse'
-], function (Config, Promise, Parse) {
+  'config/Config'
+], function (Config) {
   function UserService() {
   }
 
@@ -11,14 +9,30 @@ define([
   };
 
   UserService.updateStats = function (user) {
+    
     return new Promise(function (res, rej) {
-      if (user.get("statSheet")) {
+      function fuckfuckfuck(user) {
         user.get("statSheet")
           .fetch()
           .then(res, rej);
-      } else {
-        rej('No statSheet on user!');
       }
+      
+      if (user.get("statSheet")) {
+        fuckfuckfuck(user);
+      } else {
+        user.fetch().then(fuckfuckfuck, rej);
+      }
+    });
+  };
+
+  UserService.currentWithStats = function () {
+    return new Promise(function (res, rej) {
+      new Parse.Query(Parse.User)
+        .include('statSheet')
+        .include('currentGame.player1.statSheet')
+        .include('currentGame.player2.statSheet')
+        .get(Parse.User.current().id)
+        .then(res, rej)
     });
   };
 
@@ -55,14 +69,14 @@ define([
     heartbeat = null;
   };
   
-  UserService.startHeartbeat = function (cb) {
+  UserService.startHeartbeat = function (user, cb) {
     if (!heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
-      Parse.User.current().save().then(cb);
+      user.save().then(cb);
       heartbeat = setInterval(function () {
         if (UserService.current()) {
           console.log("♥");
-          Parse.User.current().save().then(cb);
+          user.save().then(cb);
         }
       }, Config.HeartbeatInterval);
     }

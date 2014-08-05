@@ -26,8 +26,8 @@ define([
         self.setState(state);
       }
     },
-    
-    onSaveClicked: function (e) {
+
+    onSaveClicked: function () {
       this.setState({
         changed: false
       });
@@ -116,7 +116,7 @@ define([
     componentDidMount: function () {
       var self = this;
       if (this.props.user) {
-        UserService.updateStats(this.props.user)
+        UserService.currentWithStats(this.props.user)
           .then(function () {
             self.setState({
               loading: false
@@ -158,10 +158,10 @@ define([
       var statSheet = null;
       var timeStuff = null;
 
-      if (this.props.user) {
+      // what a mess...
+      if (this.props.user && this.props.user.get('statSheet') && this.props.user.get('statSheet')) {
         var user = this.props.user.toJSON();
         var stats = this.props.user.get('statSheet').toJSON();
-
         playerView =
           <PlayerView user={this.props.user} />;
 
@@ -176,29 +176,29 @@ define([
           statSheet = <StatsView stats={stats} />;
           timeStuff = <TimeView user={this.props.user} />;
         }
-
-        var dangerZone =
-          <div className="content-padded">
-            <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
-            <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
-            <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
-          </div>;
-
-        var profile =
-          <div id="profile" className="page content">
-          {playerView}
-            <ul className="table-view">
-              {basic}
-              <li className="table-view-cell table-view-divider"/>
-              {statSheet}
-              <li className="table-view-cell table-view-divider"/>
-              {timeStuff}
-              <li className="table-view-cell table-view-divider"/>
-              {dangerZone}
-            </ul>
-          </div>;
-        return profile;
       }
+
+      var dangerZone =
+        <div className="content-padded">
+          <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
+          <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
+          <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
+        </div>;
+
+      var profile =
+        <div id="profile" className="page content">
+          {playerView}
+          <ul className="table-view">
+              {basic}
+            <li className="table-view-cell table-view-divider"/>
+              {statSheet}
+            <li className="table-view-cell table-view-divider"/>
+              {timeStuff}
+            <li className="table-view-cell table-view-divider"/>
+              {dangerZone}
+          </ul>
+        </div>;
+      return profile;
     }
   });
 });

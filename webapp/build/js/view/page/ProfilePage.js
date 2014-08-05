@@ -27,8 +27,8 @@ define([
         self.setState(state);
       }
     },
-    
-    onSaveClicked: function (e) {
+
+    onSaveClicked: function () {
       this.setState({
         changed: false
       });
@@ -117,7 +117,7 @@ define([
     componentDidMount: function () {
       var self = this;
       if (this.props.user) {
-        UserService.updateStats(this.props.user)
+        UserService.currentWithStats(this.props.user)
           .then(function () {
             self.setState({
               loading: false
@@ -159,10 +159,10 @@ define([
       var statSheet = null;
       var timeStuff = null;
 
-      if (this.props.user) {
+      // what a mess...
+      if (this.props.user && this.props.user.get('statSheet') && this.props.user.get('statSheet')) {
         var user = this.props.user.toJSON();
         var stats = this.props.user.get('statSheet').toJSON();
-
         playerView =
           PlayerView({user: this.props.user});
 
@@ -177,29 +177,29 @@ define([
           statSheet = StatsView({stats: stats});
           timeStuff = TimeView({user: this.props.user});
         }
-
-        var dangerZone =
-          React.DOM.div({className: "content-padded"}, 
-            React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
-            React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
-            React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
-          );
-
-        var profile =
-          React.DOM.div({id: "profile", className: "page content"}, 
-          playerView, 
-            React.DOM.ul({className: "table-view"}, 
-              basic, 
-              React.DOM.li({className: "table-view-cell table-view-divider"}), 
-              statSheet, 
-              React.DOM.li({className: "table-view-cell table-view-divider"}), 
-              timeStuff, 
-              React.DOM.li({className: "table-view-cell table-view-divider"}), 
-              dangerZone
-            )
-          );
-        return profile;
       }
+
+      var dangerZone =
+        React.DOM.div({className: "content-padded"}, 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
+        );
+
+      var profile =
+        React.DOM.div({id: "profile", className: "page content"}, 
+          playerView, 
+          React.DOM.ul({className: "table-view"}, 
+              basic, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              statSheet, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              timeStuff, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              dangerZone
+          )
+        );
+      return profile;
     }
   });
 });

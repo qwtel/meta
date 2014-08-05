@@ -107,7 +107,6 @@ gulp.task('css', function () {
 var requireConfig = {
   baseUrl: DEV_PATH + '/build/js',
   paths: {
-    parse: 'vendor/parse/parse-1.2.19',
     director: '../../bower_components/director/build/director',
     fastclick: '../../bower_components/fastclick/lib/fastclick',
     jquery: '../../bower_components/jquery/dist/jquery',
@@ -115,7 +114,6 @@ var requireConfig = {
     react: '../../bower_components/react/react-with-addons',
     underscore: '../../bower_components/underscore/underscore',
     ratchet: '../../bower_components/ratchet/dist/js/ratchet',
-    promise: '../../bower_components/es6-promise/promise'
   },
   shim: {
     director: {
@@ -138,10 +136,6 @@ var requireConfig = {
     },
     underscore: {
       exports: '_'
-    },
-    parse: {
-      deps: ['jquery'],
-      exports: "Parse"
     }
   },
   name: 'view/main',

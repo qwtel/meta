@@ -1,15 +1,13 @@
 require.config({
   baseUrl: 'build/js',
   paths: {
-    parse: 'vendor/parse/parse-1.2.19',
     director: '../../bower_components/director/build/director.min',
     fastclick: '../../bower_components/fastclick/lib/fastclick',
     jquery: '../../bower_components/jquery/dist/jquery.min',
     moment: '../../bower_components/moment/min/moment.min',
     react: '../../bower_components/react/react-with-addons',
     underscore: '../../bower_components/underscore/underscore',
-    ratchet: '../../bower_components/ratchet/dist/js/ratchet',
-    promise: '../../bower_components/es6-promise/promise'
+    ratchet: '../../bower_components/ratchet/dist/js/ratchet'
   },
   shim: {
     director: {
@@ -32,13 +30,6 @@ require.config({
     },
     underscore: {
       exports: '_'
-    },
-    parse: {
-      deps: ['jquery'],
-      exports: "Parse"
-    },
-    promise: {
-      exports: "Promise"
     }
   },
   name: 'view/launch',
