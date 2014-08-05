@@ -3,37 +3,47 @@
     float: left;
     line-height: 50px;
   }
+  
+  @size: 50px;
+  @size2: 35px;
+  
+  .bubbly(@s) {
+    line-height: @s - 1px;
+    text-align: center;
+    width: @s;
+    height: @s;
+    border-radius: @s / 2;
+  }
 
   .move {
     position: relative;
     width: 75px;
-    height: 50px;
+    height: @size;
 
     .profilepic {
-      width: 50px;
-      height: 50px;
-      border-radius: 100%;
+      .bubbly(@size)
     }
 
     .name {
-      font-weight: bold;
+      .bubbly(@size2);
       position: absolute;
-      top: (50px - 35px) / 2;
+      top: (@size - @size2) / 2;
       right: 0;
       font-size: 14px;
-      line-height: 34px;
-      text-align: center;
-      width: 35px;
-      height: 35px;
-      border-radius: 100%;
+      font-weight: bold;
     }
   }
+  
   .result {
     font-size: 32px;
     margin: 0 15px;
   }
+  
   .points {
-    font-size: 28px;
+    .bubbly(@size);
     float: right;
+    font-size: 24px;
+    font-weight: bold;
+    background: #f5f5f5;
   }
 }

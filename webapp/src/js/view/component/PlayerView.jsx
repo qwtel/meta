@@ -4,16 +4,16 @@ define([
   return React.createClass({
     render: function () {
       var user = this.props.user.toJSON();
-      var statsSheet = this.props.user.get('statSheet');
 
       var dots = null;
+      var statsSheet = this.props.user.get('statSheet');
       var level, rank;
       if (statsSheet && (level = statsSheet.get('level')) !== undefined && (rank = statsSheet.get('rank')) !== undefined) {
         dots = [
-          <div className="level dot-pos">
+          <div key="level" className="level dot-pos">
             <span className="dot">{level}</span>
           </div>,
-          <div className="rank dot-pos">
+          <div key="rank" className="rank dot-pos">
             <span className="dot">{'#' + rank}</span>
           </div>
         ];

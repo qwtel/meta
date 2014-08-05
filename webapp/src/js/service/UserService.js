@@ -9,7 +9,6 @@ define([
   };
 
   UserService.updateStats = function (user) {
-    
     return new Promise(function (res, rej) {
       function fuckfuckfuck(user) {
         user.get("statSheet")

@@ -43,7 +43,7 @@ define([
         user: user
       });
     },
-
+    
     render: function () {
       var res = null;
 

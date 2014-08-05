@@ -13,7 +13,7 @@ define([
             console.log("User signed up and logged in through Facebook!");
             
             // TODO: Fetch on server ?
-            FacebookService.fetch().then(function () {
+            FacebookService.fetch(user).then(function () {
               window.router.setRoute(Page.Profile);
             });
           } 

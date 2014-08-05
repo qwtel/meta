@@ -48,7 +48,7 @@ define([
           loadingResult: true
         });
 
-        GameService.doAction(action)
+        GameService.doAction(self.props.user, action)
           .then(function (res) {
             var game = res[0];
             var nextGame = res[1];
@@ -89,14 +89,15 @@ define([
             playerView = <PlayerView user={this.state.lastGame.get('player1')} />;
           }
 
-          buttons = [
-            <ul className="table-view history" style={{marginTop: 0}}>
-              <HistoryGameView key={this.state.lastGame.id} game={this.state.lastGame} />
-            </ul>,
-            <p className="content-padded" style={{paddingTop: 0}}>
-              <button className="btn btn-normal btn-outlined btn-block" onClick={this.nextGame}>Next</button>
-            </p>
-          ];
+          buttons =
+            <div>
+              <ul className="table-view history" style={{marginTop: 0}}>
+                <HistoryGameView key={this.state.lastGame.id} game={this.state.lastGame} />
+              </ul>
+              <p className="content-padded" style={{paddingTop: 0}}>
+                <button className="btn btn-normal btn-outlined btn-block" onClick={this.nextGame}>Next</button>
+              </p>
+            </div>;
 
         }
         else {

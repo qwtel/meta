@@ -49,7 +49,7 @@ define([
           loadingResult: true
         });
 
-        GameService.doAction(action)
+        GameService.doAction(self.props.user, action)
           .then(function (res) {
             var game = res[0];
             var nextGame = res[1];
@@ -90,14 +90,15 @@ define([
             playerView = PlayerView({user: this.state.lastGame.get('player1')});
           }
 
-          buttons = [
-            React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
-              HistoryGameView({key: this.state.lastGame.id, game: this.state.lastGame})
-            ),
-            React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
-              React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.nextGame}, "Next")
-            )
-          ];
+          buttons =
+            React.DOM.div(null, 
+              React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
+                HistoryGameView({key: this.state.lastGame.id, game: this.state.lastGame})
+              ), 
+              React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
+                React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.nextGame}, "Next")
+              )
+            );
 
         }
         else {

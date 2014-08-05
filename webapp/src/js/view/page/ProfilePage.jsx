@@ -1,12 +1,13 @@
 define([
   'service/UserService',
+  'service/FacebookService',
   'view/component/PlayerView',
   'view/common/Loading',
   'view/common/Error',
   'enum/Page',
   'react',
   'moment'
-], function (UserService, PlayerView, Loading, Error, Page, React, Moment) {
+], function (UserService, FacebookService, PlayerView, Loading, Error, Page, React, Moment) {
   var BasicView = React.createClass({
     getInitialState: function () {
       return {
@@ -116,7 +117,7 @@ define([
     componentDidMount: function () {
       var self = this;
       if (this.props.user) {
-        UserService.currentWithStats(this.props.user)
+        UserService.updateStats(this.props.user)
           .then(function () {
             self.setState({
               loading: false
@@ -152,11 +153,25 @@ define([
       window.router.setRoute(Page.Login);
     },
 
+    onUpdateFbClicked: function () {
+      /*
+      var self = this;
+      FacebookService.update(this.props.user)
+        .then(function () {
+          return self.props.user.fetch()
+        })
+        .then(function () {
+          self.forceUpdate();
+        });
+      */
+    },
+
     render: function () {
       var playerView = null;
       var basic = null;
       var statSheet = null;
       var timeStuff = null;
+      var facebookyStuff = null;
 
       // what a mess...
       if (this.props.user && this.props.user.get('statSheet') && this.props.user.get('statSheet')) {
@@ -176,6 +191,15 @@ define([
           statSheet = <StatsView stats={stats} />;
           timeStuff = <TimeView user={this.props.user} />;
         }
+        
+        /*
+        facebookyStuff =
+          <div className="content-padded">
+            <button className="btn btn-outlined btn-normal btn-block" onClick={this.onUpdateFbClicked} >
+            Update Facebook Data
+            </button>
+          </div>;
+        */
       }
 
       var dangerZone =
@@ -194,6 +218,8 @@ define([
               {statSheet}
             <li className="table-view-cell table-view-divider"/>
               {timeStuff}
+            <li className="table-view-cell table-view-divider"/>
+              {facebookyStuff}
             <li className="table-view-cell table-view-divider"/>
               {dangerZone}
           </ul>

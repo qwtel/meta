@@ -33,7 +33,7 @@ define([
           HistoryGameMoveView({player: this.props.game.get('player1'), move: this.props.game.get('move1')}), 
           React.DOM.p({className: "result"}, gt), 
           HistoryGameMoveView({player: this.props.game.get('player2'), move: this.props.game.get('move2')}), 
-          React.DOM.p({className: "points"}, sign(r1) + '/' + sign(r2))
+          React.DOM.p({className: "points"}, sign(r2))
         );
 
       return row;

@@ -20,7 +20,7 @@ define(function () {
     }
   };
 
-  GameService.doAction = function (action) {
+  GameService.doAction = function (user, action) {
     return new Promise(function (res, rej) {
       GameService.clearCache();
       Parse.Cloud.run('doAction', {
@@ -28,6 +28,7 @@ define(function () {
       }).then(function (xxx) {
         // TODO: Handle response (next game, notifications?)
         currentGame = res[1];
+        user.set('currentGame', currentGame);
         res(xxx);
       }, rej);
     });

@@ -32,7 +32,7 @@ define([
           <HistoryGameMoveView player={this.props.game.get('player1')} move={this.props.game.get('move1')} />
           <p className="result">{gt}</p>
           <HistoryGameMoveView player={this.props.game.get('player2')} move={this.props.game.get('move2')} />
-          <p className="points">{sign(r1) + '/' + sign(r2)}</p>
+          <p className="points">{sign(r2)}</p>
         </li>;
 
       return row;

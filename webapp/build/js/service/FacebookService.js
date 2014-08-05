@@ -1,13 +1,10 @@
-define([
-  'service/UserService'
-], function (UserService) {
+define(function () {
   function FacebookService() {
   }
 
-  FacebookService.fetch = function () {
-    var user = UserService.current();
+  FacebookService.fetch = function (user) {
     var fbId = user.get('authData').facebook.id;
-
+    
     var p1 = new Promise(function (res, rej) {
       FB.api(
           "/" + fbId, {
@@ -46,7 +43,7 @@ define([
         var profile = results[0];
         var picture = results[1];
 
-        user.set({
+        return user.save({
           firstName: profile.first_name,
           about: profile.about || '',
           minAge: profile.age_range.min,
@@ -54,16 +51,12 @@ define([
           bannerUrl: profile.cover.source,
           bannerOffset: profile.cover.offset_y
         });
-
-        UserService.save(user).then(function (user) {
-          return user.fetch();
-        })
       });
   };
 
   FacebookService.update = FacebookService.fetch;
   
-  if (window.Debug) window.FacebookService = FacebookService
+  if (window.Debug) window.FacebookService = FacebookService;
 
   return FacebookService;
 });
