@@ -8,6 +8,104 @@ define([
   'react',
   'moment'
 ], function (UserService, PlayerView, Loading, Error, Page, React, Moment) {
+  var BasicView = React.createClass({displayName: 'BasicView',
+    getInitialState: function () {
+      return {
+        changed: false,
+        firstName: this.props.user.firstName,
+        about: this.props.user.about
+      }
+    },
+
+    createOnInputChanged: function (name) {
+      var self = this;
+      return function (e) {
+        var state = {
+          changed: true
+        };
+        state[name] = e.target.value;
+        self.setState(state);
+      }
+    },
+    
+    onSaveClicked: function (e) {
+      this.setState({
+        changed: false
+      });
+      this.props.onSaveClicked(this.state.firstName, this.state.about);
+    },
+
+    render: function () {
+      var button = null;
+      if (this.state.changed) {
+        button =
+          React.DOM.div({className: "content-padded"}, 
+            React.DOM.button({className: "btn btn-normal btn-block", onClick: this.onSaveClicked}, "Save")
+          );
+      }
+
+      return (
+        React.DOM.div(null, 
+          React.DOM.div({className: "input-row"}, 
+            React.DOM.label(null, "Name"), 
+            React.DOM.input({type: "text", placeholder: "Name", ref: "firstName", value: this.state.firstName, onChange: this.createOnInputChanged('firstName')})
+          ), 
+          React.DOM.div({className: "input-row"}, 
+            React.DOM.label(null, "Message"), 
+            React.DOM.input({type: "text", placeholder: "Message", ref: "about", value: this.state.about, onChange: this.createOnInputChanged('about')})
+          ), 
+          button
+        ));
+    }
+  });
+
+  var CellView = React.createClass({displayName: 'CellView',
+    render: function () {
+      return (
+        React.DOM.li({className: "table-view-cell"}, 
+          React.DOM.span({className: "pull-left"}, this.props.key), 
+          React.DOM.span({className: "pull-right"}, this.props.value)
+        )
+        );
+    }
+  });
+
+  var TableView = React.createClass({displayName: 'TableView',
+    render: function () {
+      var statsView = this.props.data.map(function (d) {
+        return CellView({key: d[0], value: d[1]})
+      });
+
+      return React.DOM.div(null, statsView);
+    }
+  });
+
+  var StatsView = React.createClass({displayName: 'StatsView',
+    render: function () {
+      var stats = this.props.stats;
+      var data = [
+        ['Level', stats.level],
+        ['Points', stats.points],
+        ['Games', stats.numGames],
+        ['Points per Game', (stats.points / stats.numGames).toFixed(4)],
+        ['Score', stats.score],
+        ['Rank', '#' + stats.rank]
+      ];
+      return TableView({data: data})
+    }
+  });
+
+  var TimeView = React.createClass({displayName: 'TimeView',
+    render: function () {
+      var user = this.props.user;
+      var data = [
+        ['Member since', Moment(user.createdAt).format('L')],
+        ['Last seen', Moment(user.updatedAt).format('LLLL')]
+      ];
+      return TableView({data: data})
+    }
+  });
+
   return React.createClass({
     getInitialState: function () {
       return {
@@ -34,10 +132,8 @@ define([
       }
     },
 
-    onSaveClicked: function () {
-      var firstName = this.refs.name.getDOMNode().value;
-      var about = this.refs.message.getDOMNode().value;
-
+    onSaveClicked: function (firstName, about) {
+      // TODO: Move validation to UserService
       if (firstName && (firstName = firstName.trim()) !== '') {
         this.props.user.set('firstName', firstName);
       }
@@ -70,86 +166,40 @@ define([
         playerView =
           PlayerView({user: this.props.user});
 
-        basic = [
-          React.DOM.div({className: "input-row"}, 
-            React.DOM.label(null, "Name"), 
-            React.DOM.input({type: "text", placeholder: "Name", ref: "name", defaultValue: user.firstName})
-          ),
-          React.DOM.div({className: "input-row"}, 
-            React.DOM.label(null, "Message"), 
-            React.DOM.input({type: "text", placeholder: "Message", ref: "message", defaultValue: user.about})
-          ),
-          React.DOM.div({className: "content-padded"}, 
-            React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.onSaveClicked}, "Save")
-          )
-        ];
+        basic =
+          BasicView({user: user, onSaveClicked: this.onSaveClicked});
 
         if (this.state.error) {
           statSheet = Error(null);
         } else if (this.state.loading) {
-          statSheet = Loading(null)
+          statSheet = Loading(null);
         } else {
-          statSheet = [
-            React.DOM.li({className: "table-view-cell"}, 
-              React.DOM.span({className: "pull-left"}, "Level"), 
-              React.DOM.span({className: "pull-right"}, stats.level)
-            ),
-            React.DOM.li({className: "table-view-cell"}, 
-              React.DOM.span({className: "pull-left"}, "Points"), 
-              React.DOM.span({className: "pull-right"}, stats.points)
-            ),
-            React.DOM.li({className: "table-view-cell"}, 
-              React.DOM.span({className: "pull-left"}, "Games"), 
-              React.DOM.span({className: "pull-right"}, stats.numGames)
-            ),
-            React.DOM.li({className: "table-view-cell"}, 
-              React.DOM.span({className: "pull-left"}, "Points per Game"), 
-              React.DOM.span({className: "pull-right"}, (stats.points / stats.numGames).toFixed(4))
-            ),
-            React.DOM.li({className: "table-view-cell"}, 
-              React.DOM.span({className: "pull-left"}, "Score"), 
-              React.DOM.span({className: "pull-right"}, stats.score)
-            ),
-            React.DOM.li({className: "table-view-cell"}, 
-              React.DOM.span({className: "pull-left"}, "Rank"), 
-              React.DOM.span({className: "pull-right"}, '#' + stats.rank)
-            )
-          ];
+          statSheet = StatsView({stats: stats});
+          timeStuff = TimeView({user: this.props.user});
         }
 
-        timeStuff = [
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Member since"), 
-            React.DOM.span({className: "pull-right"}, Moment(user.createdAt).format('L'))
-          ),
-          React.DOM.li({className: "table-view-cell"}, 
-            React.DOM.span({className: "pull-left"}, "Last online"), 
-            React.DOM.span({className: "pull-right"}, Moment(user.updatedAt).format('LLLL'))
-          )
-        ];
-      }
+        var dangerZone =
+          React.DOM.div({className: "content-padded"}, 
+            React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
+            React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
+            React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
+          );
 
-      var dangerZone =
-        React.DOM.div({className: "content-padded"}, 
-          React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
-          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
-          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
-        );
-
-      var profile =
-        React.DOM.div({id: "profile", className: "page content"}, 
+        var profile =
+          React.DOM.div({id: "profile", className: "page content"}, 
           playerView, 
-          React.DOM.ul({className: "table-view"}, 
-            basic, 
-            React.DOM.li({className: "table-view-cell table-view-divider"}), 
-            statSheet, 
-            React.DOM.li({className: "table-view-cell table-view-divider"}), 
-            timeStuff, 
-            React.DOM.li({className: "table-view-cell table-view-divider"}), 
-            dangerZone
-          )
-        );
-      return profile;
+            React.DOM.ul({className: "table-view"}, 
+              basic, 
+              React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              statSheet, 
+              React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              timeStuff, 
+              React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              dangerZone
+            )
+          );
+        return profile;
+      }
     }
   });
 });

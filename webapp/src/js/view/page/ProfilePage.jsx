@@ -7,6 +7,104 @@ define([
   'react',
   'moment'
 ], function (UserService, PlayerView, Loading, Error, Page, React, Moment) {
+  var BasicView = React.createClass({
+    getInitialState: function () {
+      return {
+        changed: false,
+        firstName: this.props.user.firstName,
+        about: this.props.user.about
+      }
+    },
+
+    createOnInputChanged: function (name) {
+      var self = this;
+      return function (e) {
+        var state = {
+          changed: true
+        };
+        state[name] = e.target.value;
+        self.setState(state);
+      }
+    },
+    
+    onSaveClicked: function (e) {
+      this.setState({
+        changed: false
+      });
+      this.props.onSaveClicked(this.state.firstName, this.state.about);
+    },
+
+    render: function () {
+      var button = null;
+      if (this.state.changed) {
+        button =
+          <div className="content-padded">
+            <button className="btn btn-normal btn-block" onClick={this.onSaveClicked}>Save</button>
+          </div>;
+      }
+
+      return (
+        <div>
+          <div className="input-row">
+            <label>Name</label>
+            <input type="text" placeholder="Name" ref="firstName" value={this.state.firstName} onChange={this.createOnInputChanged('firstName')} />
+          </div>
+          <div className="input-row">
+            <label>Message</label>
+            <input type="text" placeholder="Message" ref="about" value={this.state.about} onChange={this.createOnInputChanged('about')} />
+          </div>
+          {button}
+        </div>);
+    }
+  });
+
+  var CellView = React.createClass({
+    render: function () {
+      return (
+        <li className="table-view-cell">
+          <span className="pull-left">{this.props.key}</span>
+          <span className="pull-right">{this.props.value}</span>
+        </li>
+        );
+    }
+  });
+
+  var TableView = React.createClass({
+    render: function () {
+      var statsView = this.props.data.map(function (d) {
+        return <CellView key={d[0]} value={d[1]} />
+      });
+
+      return <div>{statsView}</div>;
+    }
+  });
+
+  var StatsView = React.createClass({
+    render: function () {
+      var stats = this.props.stats;
+      var data = [
+        ['Level', stats.level],
+        ['Points', stats.points],
+        ['Games', stats.numGames],
+        ['Points per Game', (stats.points / stats.numGames).toFixed(4)],
+        ['Score', stats.score],
+        ['Rank', '#' + stats.rank]
+      ];
+      return <TableView data={data} />
+    }
+  });
+
+  var TimeView = React.createClass({
+    render: function () {
+      var user = this.props.user;
+      var data = [
+        ['Member since', Moment(user.createdAt).format('L')],
+        ['Last seen', Moment(user.updatedAt).format('LLLL')]
+      ];
+      return <TableView data={data} />
+    }
+  });
+
   return React.createClass({
     getInitialState: function () {
       return {
@@ -33,10 +131,8 @@ define([
       }
     },
 
-    onSaveClicked: function () {
-      var firstName = this.refs.name.getDOMNode().value;
-      var about = this.refs.message.getDOMNode().value;
-
+    onSaveClicked: function (firstName, about) {
+      // TODO: Move validation to UserService
       if (firstName && (firstName = firstName.trim()) !== '') {
         this.props.user.set('firstName', firstName);
       }
@@ -69,86 +165,40 @@ define([
         playerView =
           <PlayerView user={this.props.user} />;
 
-        basic = [
-          <div className="input-row">
-            <label>Name</label>
-            <input type="text" placeholder="Name" ref="name" defaultValue={user.firstName} />
-          </div>,
-          <div className="input-row">
-            <label>Message</label>
-            <input type="text" placeholder="Message" ref="message" defaultValue={user.about} />
-          </div>,
-          <div className="content-padded">
-            <button className="btn btn-normal btn-outlined btn-block" onClick={this.onSaveClicked}>Save</button>
-          </div>
-        ];
+        basic =
+          <BasicView user={user} onSaveClicked={this.onSaveClicked} />;
 
         if (this.state.error) {
           statSheet = <Error />;
         } else if (this.state.loading) {
-          statSheet = <Loading />
+          statSheet = <Loading />;
         } else {
-          statSheet = [
-            <li className="table-view-cell">
-              <span className="pull-left">Level</span>
-              <span className="pull-right">{stats.level}</span>
-            </li>,
-            <li className="table-view-cell">
-              <span className="pull-left">Points</span>
-              <span className="pull-right">{stats.points}</span>
-            </li>,
-            <li className="table-view-cell">
-              <span className="pull-left">Games</span>
-              <span className="pull-right">{stats.numGames}</span>
-            </li>,
-            <li className="table-view-cell">
-              <span className="pull-left">Points per Game</span>
-              <span className="pull-right">{(stats.points / stats.numGames).toFixed(4)}</span>
-            </li>,
-            <li className="table-view-cell">
-              <span className="pull-left">Score</span>
-              <span className="pull-right">{stats.score}</span>
-            </li>,
-            <li className="table-view-cell">
-              <span className="pull-left">Rank</span>
-              <span className="pull-right">{'#' + stats.rank}</span>
-            </li>
-          ];
+          statSheet = <StatsView stats={stats} />;
+          timeStuff = <TimeView user={this.props.user} />;
         }
 
-        timeStuff = [
-          <li className="table-view-cell">
-            <span className="pull-left">Member since</span>
-            <span className="pull-right">{Moment(user.createdAt).format('L')}</span>
-          </li>,
-          <li className="table-view-cell">
-            <span className="pull-left">Last online</span>
-            <span className="pull-right">{Moment(user.updatedAt).format('LLLL')}</span>
-          </li>
-        ];
-      }
+        var dangerZone =
+          <div className="content-padded">
+            <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
+            <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
+            <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
+          </div>;
 
-      var dangerZone =
-        <div className="content-padded">
-          <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
-          <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
-          <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
-        </div>;
-
-      var profile =
-        <div id="profile" className="page content">
+        var profile =
+          <div id="profile" className="page content">
           {playerView}
-          <ul className="table-view">
-            {basic}
-            <li className="table-view-cell table-view-divider"/>
-            {statSheet}
-            <li className="table-view-cell table-view-divider"/>
-            {timeStuff}
-            <li className="table-view-cell table-view-divider"/>
-            {dangerZone}
-          </ul>
-        </div>;
-      return profile;
+            <ul className="table-view">
+              {basic}
+              <li className="table-view-cell table-view-divider"/>
+              {statSheet}
+              <li className="table-view-cell table-view-divider"/>
+              {timeStuff}
+              <li className="table-view-cell table-view-divider"/>
+              {dangerZone}
+            </ul>
+          </div>;
+        return profile;
+      }
     }
   });
 });
