@@ -41,13 +41,28 @@ define('service/UserService',[
 
   UserService.updateStats = function (user) {
     return new Promise(function (res, rej) {
-      if (user.get("statSheet")) {
+      function fuckfuckfuck(user) {
         user.get("statSheet")
           .fetch()
           .then(res, rej);
-      } else {
-        rej('No statSheet on user!');
       }
+      
+      if (user.get("statSheet")) {
+        fuckfuckfuck(user);
+      } else {
+        user.fetch().then(fuckfuckfuck, rej);
+      }
+    });
+  };
+
+  UserService.currentWithStats = function () {
+    return new Promise(function (res, rej) {
+      new Parse.Query(Parse.User)
+        .include('statSheet')
+        .include('currentGame.player1.statSheet')
+        .include('currentGame.player2.statSheet')
+        .get(Parse.User.current().id)
+        .then(res, rej)
     });
   };
 
@@ -84,14 +99,14 @@ define('service/UserService',[
     heartbeat = null;
   };
   
-  UserService.startHeartbeat = function (cb) {
+  UserService.startHeartbeat = function (user, cb) {
     if (!heartbeat && UserService.current()) {
       console.log("Starting heartbeat...");
-      Parse.User.current().save().then(cb);
+      user.save().then(cb);
       heartbeat = setInterval(function () {
         if (UserService.current()) {
           console.log("♥");
-          Parse.User.current().save().then(cb);
+          user.save().then(cb);
         }
       }, Config.HeartbeatInterval);
     }
@@ -102,16 +117,13 @@ define('service/UserService',[
   return UserService;
 });
 
-define('service/FacebookService',[
-  'service/UserService'
-], function (UserService) {
+define('service/FacebookService',[],function () {
   function FacebookService() {
   }
 
-  FacebookService.fetch = function () {
-    var user = UserService.current();
+  FacebookService.fetch = function (user) {
     var fbId = user.get('authData').facebook.id;
-
+    
     var p1 = new Promise(function (res, rej) {
       FB.api(
           "/" + fbId, {
@@ -150,7 +162,7 @@ define('service/FacebookService',[
         var profile = results[0];
         var picture = results[1];
 
-        user.set({
+        return user.save({
           firstName: profile.first_name,
           about: profile.about || '',
           minAge: profile.age_range.min,
@@ -158,16 +170,12 @@ define('service/FacebookService',[
           bannerUrl: profile.cover.source,
           bannerOffset: profile.cover.offset_y
         });
-
-        UserService.save(user).then(function (user) {
-          return user.fetch();
-        })
       });
   };
 
   FacebookService.update = FacebookService.fetch;
   
-  if (window.Debug) window.FacebookService = FacebookService
+  if (window.Debug) window.FacebookService = FacebookService;
 
   return FacebookService;
 });
@@ -20457,12 +20465,21 @@ define('view/component/NavBarView',[
               'Play'
             );
       }
+      
+      var meter = null;
+      if (this.props.width !== undefined) {
+        meter =
+          React.DOM.div({className: "meter"}, 
+            React.DOM.span({style: {width: (this.props.width * 100) + "%"}})
+          )
+      }
 
       var header =
           React.DOM.header({className: "bar bar-nav"}, 
             left, 
             right, 
-            React.DOM.h1({className: "title"}, Titles[this.props.page])
+            React.DOM.h1({className: "title"}, Titles[this.props.page]), 
+            meter
           );
 
       return header;
@@ -20536,7 +20553,7 @@ define('view/world/LoginWorld',[
             console.log("User signed up and logged in through Facebook!");
             
             // TODO: Fetch on server ?
-            FacebookService.fetch().then(function () {
+            FacebookService.fetch(user).then(function () {
               window.router.setRoute(Page.Profile);
             });
           } 
@@ -20575,6 +20592,36 @@ define('view/world/LoginWorld',[
   });
 });
 
+define('logic/LevelLogic',[],function () {
+  function LevelLogic() {
+  }
+
+  // using the Pentagonal numbers (http://oeis.org/A000326) 
+  LevelLogic.nextLevel = function (level) {
+    var n;
+    n = level;
+    return n * (3 * n - 1) / 2;
+  };
+
+  // calculates the sum of all previous levels
+  LevelLogic.prevLevels = function (level) {
+    var i, prev;
+    prev = 0;
+    i = 0;
+    while (i < level - 1) {
+      i++;
+      prev += LevelLogic.nextLevel(i);
+    }
+    return prev;
+  };
+
+  LevelLogic.isLevelUp = function (points, level) {
+    return (points >= LevelLogic.nextLevel(level));
+  };
+  
+  return LevelLogic;
+});
+
 /** @jsx React.DOM */
 define('view/component/PlayerView',[
   'react'
@@ -20582,16 +20629,16 @@ define('view/component/PlayerView',[
   return React.createClass({
     render: function () {
       var user = this.props.user.toJSON();
-      var statsSheet = this.props.user.get('statSheet');
 
       var dots = null;
+      var statsSheet = this.props.user.get('statSheet');
       var level, rank;
       if (statsSheet && (level = statsSheet.get('level')) !== undefined && (rank = statsSheet.get('rank')) !== undefined) {
         dots = [
-          React.DOM.div({className: "level dot-pos"}, 
+          React.DOM.div({key: "level", className: "level dot-pos"}, 
             React.DOM.span({className: "dot"}, level)
           ),
-          React.DOM.div({className: "rank dot-pos"}, 
+          React.DOM.div({key: "rank", className: "rank dot-pos"}, 
             React.DOM.span({className: "dot"}, '#' + rank)
           )
         ];
@@ -20671,13 +20718,14 @@ define('view/common/Error',[
 /** @jsx React.DOM */
 define('view/page/ProfilePage',[
   'service/UserService',
+  'service/FacebookService',
   'view/component/PlayerView',
   'view/common/Loading',
   'view/common/Error',
   'enum/Page',
   'react',
   'moment'
-], function (UserService, PlayerView, Loading, Error, Page, React, Moment) {
+], function (UserService, FacebookService, PlayerView, Loading, Error, Page, React, Moment) {
   var BasicView = React.createClass({displayName: 'BasicView',
     getInitialState: function () {
       return {
@@ -20697,8 +20745,8 @@ define('view/page/ProfilePage',[
         self.setState(state);
       }
     },
-    
-    onSaveClicked: function (e) {
+
+    onSaveClicked: function () {
       this.setState({
         changed: false
       });
@@ -20823,16 +20871,30 @@ define('view/page/ProfilePage',[
       window.router.setRoute(Page.Login);
     },
 
+    onUpdateFbClicked: function () {
+      /*
+      var self = this;
+      FacebookService.update(this.props.user)
+        .then(function () {
+          return self.props.user.fetch()
+        })
+        .then(function () {
+          self.forceUpdate();
+        });
+      */
+    },
+
     render: function () {
       var playerView = null;
       var basic = null;
       var statSheet = null;
       var timeStuff = null;
+      var facebookyStuff = null;
 
-      if (this.props.user) {
+      // what a mess...
+      if (this.props.user && this.props.user.get('statSheet') && this.props.user.get('statSheet')) {
         var user = this.props.user.toJSON();
         var stats = this.props.user.get('statSheet').toJSON();
-
         playerView =
           PlayerView({user: this.props.user});
 
@@ -20847,86 +20909,42 @@ define('view/page/ProfilePage',[
           statSheet = StatsView({stats: stats});
           timeStuff = TimeView({user: this.props.user});
         }
-
-        var dangerZone =
-          React.DOM.div({className: "content-padded"}, 
-            React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
-            React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
-            React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
-          );
-
-        var profile =
-          React.DOM.div({id: "profile", className: "page content"}, 
-          playerView, 
-            React.DOM.ul({className: "table-view"}, 
-              basic, 
-              React.DOM.li({className: "table-view-cell table-view-divider"}), 
-              statSheet, 
-              React.DOM.li({className: "table-view-cell table-view-divider"}), 
-              timeStuff, 
-              React.DOM.li({className: "table-view-cell table-view-divider"}), 
-              dangerZone
-            )
-          );
-        return profile;
+        
+        /*
+        facebookyStuff =
+          <div className="content-padded">
+            <button className="btn btn-outlined btn-normal btn-block" onClick={this.onUpdateFbClicked} >
+            Update Facebook Data
+            </button>
+          </div>;
+        */
       }
+
+      var dangerZone =
+        React.DOM.div({className: "content-padded"}, 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
+        );
+
+      var profile =
+        React.DOM.div({id: "profile", className: "page content"}, 
+          playerView, 
+          React.DOM.ul({className: "table-view"}, 
+              basic, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              statSheet, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              timeStuff, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              facebookyStuff, 
+            React.DOM.li({className: "table-view-cell table-view-divider"}), 
+              dangerZone
+          )
+        );
+      return profile;
     }
   });
-});
-
-define('service/GameService',[],function () {
-  
-  // keep in cache
-  var currentGame;
-
-  function GameService() {
-  }
-
-  GameService.getGame = function () {
-    if (!currentGame) {
-      return new Promise(function (res, rej) {
-        Parse.Cloud.run("getGame")
-          .then(function (game) {
-            currentGame = game;
-            res(game);
-          }, rej);
-      });
-    } else {
-      return Promise.resolve(currentGame);
-    }
-  };
-
-  GameService.doAction = function (action) {
-    return new Promise(function (res, rej) {
-      GameService.clearCache();
-      Parse.Cloud.run('doAction', {
-        action: action
-      }).then(function (xxx) {
-        // TODO: Handle response (next game, notifications?)
-        currentGame = res[1];
-        res(xxx);
-      }, rej);
-    });
-  };
-  
-  GameService.getHistory = function (page) {
-    return new Promise(function (res, rej) {
-      Parse.Cloud.run('getHistory', {
-        page: page
-      }).then(function(xxx) {
-        res(xxx);
-      }, rej);
-    });
-  };
-  
-  GameService.clearCache = function() {
-    currentGame = undefined;
-  };
-  
-  // TODO: not good
-  window.GameService = GameService;
-
-  return GameService
 });
 
 define('enum/Action',[
@@ -20944,32 +20962,6 @@ define('enum/Action',[
   });
   
   return Action;
-});
-
-/** @jsx React.DOM */
-define('view/component/HistoryGameMoveView',[
-  'service/UserService',
-  'enum/Action',
-  'react'
-], function (UserService, Action, React) {
-  return React.createClass({
-    render: function () {
-      var dot;
-      switch(this.props.move) {
-        case Action.Cooperate: dot = ["Co", 'btn-positive']; break;
-        case Action.Pass: dot = ["Es", 'btn-primary']; break;
-        case Action.Defect: dot = ["De", 'btn-negative']; break;
-      }
-      
-      var move =
-        React.DOM.div({className: "move"}, 
-          React.DOM.img({className: "profilepic", src: this.props.player.get('pictureUrl')}), 
-          React.DOM.div({className: "name " + dot[1]}, dot[0])
-        );
-        
-      return move;
-    }
-  });
 });
 
 define('logic/GameLogic',[
@@ -21040,6 +21032,105 @@ define('logic/GameLogic',[
   return GameLogic;
 });
 
+define('service/GameService',[
+  'logic/GameLogic',
+  'logic/LevelLogic'
+], function (GameLogic, LevelLogic) {
+  
+  // keep in cache
+  var currentGame;
+
+  function GameService() {
+  }
+
+  GameService.getGame = function () {
+    if (!currentGame) {
+      return new Promise(function (res, rej) {
+        Parse.Cloud.run("getGame")
+          .then(function (game) {
+            currentGame = game;
+            res(game);
+          }, rej);
+      });
+    } else {
+      return Promise.resolve(currentGame);
+    }
+  };
+
+  GameService.doAction = function (user, action) {
+    return new Promise(function (res, rej) {
+      GameService.clearCache();
+      Parse.Cloud.run('doAction', {
+        action: action
+      }).then(function (xxx) {
+        // TODO: Handle response (next game, notifications?)
+        
+        var lastGame = xxx[0];
+        currentGame = xxx[1];
+
+        var logic = new GameLogic(lastGame.get('move1'), lastGame.get('move2'));
+        var statSheet = user.get('statSheet');
+        
+        statSheet.set({
+          level: LevelLogic.isLevelUp(statSheet.get('points') + logic.result2(), statSheet.get('level')) ? statSheet.get('level') + 1 : statSheet.get('level'),
+          points: statSheet.get('points') + logic.result2()
+        });
+        
+        user.set({
+          currentGame: currentGame
+        });
+        
+        res(xxx);
+      }, rej);
+    });
+  };
+  
+  GameService.getHistory = function (page) {
+    return new Promise(function (res, rej) {
+      Parse.Cloud.run('getHistory', {
+        page: page
+      }).then(function(xxx) {
+        res(xxx);
+      }, rej);
+    });
+  };
+  
+  GameService.clearCache = function() {
+    currentGame = undefined;
+  };
+  
+  // TODO: not good
+  window.GameService = GameService;
+
+  return GameService
+});
+
+/** @jsx React.DOM */
+define('view/component/HistoryGameMoveView',[
+  'service/UserService',
+  'enum/Action',
+  'react'
+], function (UserService, Action, React) {
+  return React.createClass({
+    render: function () {
+      var dot;
+      switch(this.props.move) {
+        case Action.Cooperate: dot = ["Co", 'btn-positive']; break;
+        case Action.Pass: dot = ["Es", 'btn-primary']; break;
+        case Action.Defect: dot = ["De", 'btn-negative']; break;
+      }
+      
+      var move =
+        React.DOM.div({className: "move"}, 
+          React.DOM.img({className: "profilepic", src: this.props.player.get('pictureUrl')}), 
+          React.DOM.div({className: "name " + dot[1]}, dot[0])
+        );
+        
+      return move;
+    }
+  });
+});
+
 /** @jsx React.DOM */
 define('view/component/HistoryGameView',[
   'view/component/HistoryGameMoveView',
@@ -21075,7 +21166,7 @@ define('view/component/HistoryGameView',[
           HistoryGameMoveView({player: this.props.game.get('player1'), move: this.props.game.get('move1')}), 
           React.DOM.p({className: "result"}, gt), 
           HistoryGameMoveView({player: this.props.game.get('player2'), move: this.props.game.get('move2')}), 
-          React.DOM.p({className: "points"}, sign(r1) + '/' + sign(r2))
+          React.DOM.p({className: "points"}, sign(r2))
         );
 
       return row;
@@ -21160,30 +21251,35 @@ define('view/page/PlayPage',[
   return React.createClass({
     getInitialState: function () {
       return {
-        loading: true,
+        game: this.props.user.get('currentGame'),
+        loading: false,
         error: false,
         lastGame: null,
-        game: null,
         showResult: false,
         loadingResult: false
       };
     },
 
     componentDidMount: function () {
-      var self = this;
-      GameService.getGame()
-        .then(function (game) {
-          self.setState({
-            loading: false,
-            game: game
-          });
-        }, function (error) {
-          console.error(error);
-          self.setState({
-            loading: false,
-            error: true
-          });
+      if (!this.state.game) {
+        this.setState({
+          loading: true
         });
+        var self = this;
+        GameService.getGame()
+          .then(function (game) {
+            self.setState({
+              loading: false,
+              game: game
+            });
+          }, function (error) {
+            console.error(error);
+            self.setState({
+              loading: false,
+              error: true
+            });
+          });
+      }
     },
 
     createOnActionClicked: function (action) {
@@ -21193,7 +21289,7 @@ define('view/page/PlayPage',[
           loadingResult: true
         });
 
-        GameService.doAction(action)
+        GameService.doAction(self.props.user, action)
           .then(function (res) {
             var game = res[0];
             var nextGame = res[1];
@@ -21234,14 +21330,15 @@ define('view/page/PlayPage',[
             playerView = PlayerView({user: this.state.lastGame.get('player1')});
           }
 
-          buttons = [
-            React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
-              HistoryGameView({key: this.state.lastGame.id, game: this.state.lastGame})
-            ),
-            React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
-              React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.nextGame}, "Next")
-            )
-          ];
+          buttons =
+            React.DOM.div(null, 
+              React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
+                HistoryGameView({key: this.state.lastGame.id, game: this.state.lastGame})
+              ), 
+              React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
+                React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.nextGame}, "Next")
+              )
+            );
 
         }
         else {
@@ -21277,27 +21374,43 @@ define('view/page/PlayPage',[
 /** @jsx React.DOM */
 define('view/world/AppWorld',[
   'service/UserService',
+  'logic/LevelLogic',
   'view/page/ProfilePage',
   'view/page/HistoryPage',
   'view/page/PlayPage',
   'view/component/NavBarView',
+  'view/common/Error',
+  'view/common/Loading',
   'enum/Page',
   'react'
-], function (UserService, ProfilePage, HistoryPage, PlayPage, NavBarView, Page, React) {
+], function (UserService, LevelLogic, ProfilePage, HistoryPage, PlayPage, NavBarView, Error, Loading, Page, React) {
   return React.createClass({
     getInitialState: function () {
       return {
-        user: UserService.current()
+        user: null,
+        loading: true,
+        error: false
       }
     },
 
     componentDidMount: function () {
-      this.startHeartbeat();
-      UserService.updateStats(this.state.user).catch(console.error.bind(console));
-    },
-
-    startHeartbeat: function () {
-      UserService.startHeartbeat(this.tickHeartbeat);
+      var self = this;
+      UserService.currentWithStats()
+        .then(function (user) {
+          UserService.startHeartbeat(user, self.tickHeartbeat);
+          
+          self.setState({
+            user: user,
+            loading: false
+          });
+        })
+        .catch(function (error) {
+          console.error(error);
+          self.setState({
+            loading: false,
+            error: true
+          });
+        });
     },
 
     tickHeartbeat: function (user) {
@@ -21305,21 +21418,41 @@ define('view/world/AppWorld',[
         user: user
       });
     },
-
+    
     render: function () {
       var res = null;
-      switch (this.props.page) {
-        case Page.Profile:
-          res = ProfilePage({user: this.state.user});
-          break;
-        case Page.Play:
-          res = PlayPage({user: this.state.user});
-          break;
-        case Page.History:
-          res = HistoryPage({user: this.state.user});
-          break;
+
+      if (this.state.loading) {
+        res = React.DOM.div({className: "page content"}, Loading(null));
+      } else if (this.state.error) {
+        res = React.DOM.div({className: "page content"}, Error(null))
+      } else {
+        //var width = this.props.user.get('statSheet').get('level');
+          
+        switch (this.props.page) {
+          case Page.Profile:
+            res = ProfilePage({user: this.state.user});
+            break;
+          case Page.Play:
+            res = PlayPage({user: this.state.user});
+            break;
+          case Page.History:
+            res = HistoryPage({user: this.state.user});
+            break;
+        }
       }
 
+      /*
+      var width = 0;
+      if (this.state.user && this.state.user.get('statSheet')) {
+        var user = this.state.user;
+        var level = user.get('statSheet').get('level');
+        var points = user.get('statSheet').get('points');
+        var goal = LevelLogic.nextLevel(level);
+        width = points / goal;
+      }
+      */
+      
       return (
         React.DOM.div(null, 
           NavBarView({page: this.props.page, newHistory: 0}), 
