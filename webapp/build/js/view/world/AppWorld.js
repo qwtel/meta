@@ -11,6 +11,9 @@ define([
   'enum/Page',
   'react'
 ], function (UserService, LevelLogic, ProfilePage, HistoryPage, PlayPage, NavBarView, Error, Loading, Page, React) {
+  
+  var ReactCSSTransitionGroup = React.addons.CSSTransitionGroup;
+  
   return React.createClass({
     getInitialState: function () {
       return {
@@ -50,21 +53,21 @@ define([
       var res = null;
 
       if (this.state.loading) {
-        res = React.DOM.div({className: "page content"}, Loading(null));
+        res = React.DOM.div({key: "loading", className: "page content"}, Loading(null));
       } else if (this.state.error) {
-        res = React.DOM.div({className: "page content"}, Error(null))
+        res = React.DOM.div({key: "error", className: "page content"}, Error(null))
       } else {
         //var width = this.props.user.get('statSheet').get('level');
           
         switch (this.props.page) {
           case Page.Profile:
-            res = ProfilePage({user: this.state.user});
+            res = ProfilePage({key: Page.Profile, user: this.state.user});
             break;
           case Page.Play:
-            res = PlayPage({user: this.state.user});
+            res = PlayPage({key: Page.Play, user: this.state.user});
             break;
           case Page.History:
-            res = HistoryPage({user: this.state.user});
+            res = HistoryPage({key: Page.History, user: this.state.user});
             break;
         }
       }
@@ -83,7 +86,9 @@ define([
       return (
         React.DOM.div(null, 
           NavBarView({page: this.props.page, newHistory: 0}), 
-          res
+          ReactCSSTransitionGroup({transitionName: "carousel"}, 
+            res
+          )
         )
         );
     }

@@ -4,10 +4,13 @@ define([
   'view/component/HistoryGameView',
   'view/common/Loading',
   'view/common/Error',
+  'view/mixin/SetStateSilent',
   'enum/Action',
   'react'
-], function (GameService, PlayerView, HistoryGameView, Loading, Error, Action, React) {
+], function (GameService, PlayerView, HistoryGameView, Loading, Error, SetStateSilent, Action, React) {
   return React.createClass({
+    mixins: [SetStateSilent],
+
     getInitialState: function () {
       return {
         game: this.props.user.get('currentGame'),
@@ -27,13 +30,13 @@ define([
         var self = this;
         GameService.getGame()
           .then(function (game) {
-            self.setState({
+            self.setStateSilent({
               loading: false,
               game: game
             });
           }, function (error) {
             console.error(error);
-            self.setState({
+            self.setStateSilent({
               loading: false,
               error: true
             });
@@ -43,35 +46,52 @@ define([
 
     createOnActionClicked: function (action) {
       var self = this;
-      return function () {
-        self.setState({
-          loadingResult: true
-        });
-
-        GameService.doAction(self.props.user, action)
-          .then(function (res) {
-            var game = res[0];
-            var nextGame = res[1];
-            self.setState({
-              lastGame: game,
-              game: nextGame,
-              showResult: true,
-              loadingResult: false
-            });
-          }, function () {
-            console.error(error);
-            self.setState({
-              loadingResult: false,
-              error: true
-            });
+      if (this.state.selected !== action) {
+        return function (e) {
+          e.stopPropagation();
+          self.setState({
+            selected: action
           });
-      };
+        }
+      } else {
+        return function () {
+          self.setState({
+            loadingResult: true
+          });
+
+          GameService.doAction(self.props.user, action)
+            .then(function (res) {
+              var game = res[0];
+              var nextGame = res[1];
+              self.setState({
+                lastGame: game,
+                game: nextGame,
+                showResult: true,
+                loadingResult: false,
+                selected: null
+              });
+            }, function () {
+              console.error(error);
+              self.setState({
+                loadingResult: false,
+                error: true,
+                selected: null
+              });
+            });
+        };
+      }
     },
 
     nextGame: function () {
       this.setState({
         showResult: false
       });
+    },
+    
+    deselect: function () {
+      this.setState({
+        selected: null
+      })
     },
 
     render: function () {
@@ -108,18 +128,46 @@ define([
           if (this.state.loadingResult) {
             buttons = <Loading />;
           } else {
+            var data = [
+              [Action.Cooperate, 'Cooperate'],
+              [Action.Pass, 'Escape', 'btn-primary'],
+              [Action.Defect, 'Defect', 'btn-negative']
+            ];
+
+            var btns = data.map(function (d) {
+              var selected = this.state.selected === d[0];
+              
+              var classes = React.addons.classSet({
+                'btn': true,
+                'btn-block': true,
+                'btn-outlined': !selected,
+                'btn-positive': d[0] === Action.Cooperate,
+                'btn-primary': d[0] === Action.Pass,
+                'btn-negative': d[0] === Action.Defect
+              });
+              
+              var text = selected ? d[1] + ' »' : d[1];
+
+              return (
+                <button
+                key={d[0]}
+                className={classes}
+                onClick={this.createOnActionClicked(d[0])}>
+                  {text}
+                </button>
+                );
+            }, this);
+
             buttons =
               <p className="content-padded" style={{paddingTop: 0}}>
-                <button className="btn btn-positive btn-block" onClick={this.createOnActionClicked(Action.Cooperate)}>Cooperate</button>
-                <button className="btn btn-primary btn-block" onClick={this.createOnActionClicked(Action.Pass)}>Escape</button>
-                <button className="btn btn-negative btn-block" onClick={this.createOnActionClicked(Action.Defect)}>Defect</button>
+                {btns}
               </p>;
           }
         }
       }
 
       var playPage =
-        <div id="play" className="page content">
+        <div id="play" ref="page" className="play page content" onClick={this.deselect}>
           {loading}
           {playerView}
           {buttons}

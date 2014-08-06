@@ -1,13 +1,14 @@
 define([
   'service/UserService',
   'service/FacebookService',
+  'view/mixin/SetStateSilent',
   'view/component/PlayerView',
   'view/common/Loading',
   'view/common/Error',
   'enum/Page',
   'react',
   'moment'
-], function (UserService, FacebookService, PlayerView, Loading, Error, Page, React, Moment) {
+], function (UserService, FacebookService, SetStateSilent, PlayerView, Loading, Error, Page, React, Moment) {
   var BasicView = React.createClass({
     getInitialState: function () {
       return {
@@ -107,6 +108,8 @@ define([
   });
 
   return React.createClass({
+    mixins: [SetStateSilent],
+
     getInitialState: function () {
       return {
         loading: true,
@@ -119,12 +122,12 @@ define([
       if (this.props.user) {
         UserService.updateStats(this.props.user)
           .then(function () {
-            self.setState({
+            self.setStateSilent({
               loading: false
             });
           }, function (error) {
             console.error(error);
-            self.setState({
+            self.setStateSilent({
               loading: false,
               error: true
             });
@@ -155,15 +158,15 @@ define([
 
     onUpdateFbClicked: function () {
       /*
-      var self = this;
-      FacebookService.update(this.props.user)
-        .then(function () {
-          return self.props.user.fetch()
-        })
-        .then(function () {
-          self.forceUpdate();
-        });
-      */
+       var self = this;
+       FacebookService.update(this.props.user)
+       .then(function () {
+       return self.props.user.fetch()
+       })
+       .then(function () {
+       self.forceUpdate();
+       });
+       */
     },
 
     render: function () {
@@ -191,15 +194,15 @@ define([
           statSheet = <StatsView stats={stats} />;
           timeStuff = <TimeView user={this.props.user} />;
         }
-        
+
         /*
-        facebookyStuff =
-          <div className="content-padded">
-            <button className="btn btn-outlined btn-normal btn-block" onClick={this.onUpdateFbClicked} >
-            Update Facebook Data
-            </button>
-          </div>;
-        */
+         facebookyStuff =
+         <div className="content-padded">
+         <button className="btn btn-outlined btn-normal btn-block" onClick={this.onUpdateFbClicked} >
+         Update Facebook Data
+         </button>
+         </div>;
+         */
       }
 
       var dangerZone =
@@ -210,7 +213,7 @@ define([
         </div>;
 
       var profile =
-        <div id="profile" className="page content">
+        <div id="profile" ref="page" className="profile page content">
           {playerView}
           <ul className="table-view">
               {basic}
