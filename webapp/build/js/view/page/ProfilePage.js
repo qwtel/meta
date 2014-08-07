@@ -42,7 +42,7 @@ define([
       if (this.state.changed) {
         button =
           React.DOM.div({className: "content-padded"}, 
-            React.DOM.button({className: "btn btn-normal btn-block", onClick: this.onSaveClicked}, "Save")
+            React.DOM.button({className: "btn btn-primary btn-block", onClick: this.onSaveClicked}, "Save")
           );
       }
 

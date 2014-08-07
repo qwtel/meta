@@ -8,9 +8,9 @@ define([
     render: function () {
       var dot;
       switch(this.props.move) {
-        case Action.Cooperate: dot = ["Co", 'btn-positive']; break;
-        case Action.Pass: dot = ["Es", 'btn-primary']; break;
-        case Action.Defect: dot = ["De", 'btn-negative']; break;
+        case Action.Cooperate: dot = ["C", 'btn-positive']; break;
+        case Action.Pass: dot = ["E", 'btn-primary']; break;
+        case Action.Defect: dot = ["D", 'btn-negative']; break;
       }
       
       var move =

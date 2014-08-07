@@ -15,6 +15,8 @@ var minifyCSS = require('gulp-minify-css');
 var http = require('http');
 var ecstatic = require('ecstatic');
 
+var path = require('path');
+
 const DEV_PATH = 'webapp';
 const PROD_PATH = 'parse/public';
 
@@ -36,14 +38,68 @@ var paths = {
   coffee: DEV_PATH + '/src/js/**/*.coffee',
   requireConfig: DEV_PATH + '/src/js/requireConfig.js',
 
-  less: DEV_PATH + '/src/css/**/*.less',
+  less: DEV_PATH + '/src/css/styles.less',
   css: DEV_PATH + '/build/css/**/*.css',
 
   images: DEV_PATH + '/img/*',
 
   index: DEV_PATH + '/index.html',
 
-  spec: DEV_PATH + '/spec/*.coffee'
+  spec: DEV_PATH + '/spec/*.coffee',
+
+  main: PROD_PATH + '/build/main.js'
+};
+
+var bowerPaths = {
+  director: '../../bower_components/director/build/director',
+  fastclick: '../../bower_components/fastclick/lib/fastclick',
+  jquery: '../../bower_components/jquery/dist/jquery',
+  moment: '../../bower_components/moment/min/moment.min',
+  react: '../../bower_components/react/react-with-addons',
+  underscore: '../../bower_components/underscore/underscore',
+  ratchet: '../../bower_components/ratchet/dist/js/ratchet'
+};
+
+var bowerPathsMin = {
+  director: '../../bower_components/director/build/director.min',
+  fastclick: '../../bower_components/fastclick/lib/fastclick',
+  jquery: '../../bower_components/jquery/dist/jquery.min',
+  moment: '../../bower_components/moment/min/moment.min',
+  react: '../../bower_components/react/react-with-addons.min',
+  underscore: '../../bower_components/underscore/underscore.min',
+  ratchet: '../../bower_components/ratchet/dist/js/ratchet.min'
+};
+
+var requireConfig = function (bowerPaths) {
+  return {
+    baseUrl: DEV_PATH + '/build/js',
+    paths: bowerPaths,
+    shim: {
+      director: {
+        exports: 'Router'
+      },
+      bootstrap: {
+        deps: ['jquery']
+      },
+      fastclick: {
+        exports: 'FastClick'
+      },
+      jquery: {
+        exports: '$'
+      },
+      moment: {
+        exports: 'moment'
+      },
+      react: {
+        exports: "React"
+      },
+      underscore: {
+        exports: '_'
+      }
+    },
+    name: 'view/main',
+    out: 'main.js'
+  }
 };
 
 gulp.task('bower', function () {
@@ -70,7 +126,9 @@ gulp.task('coffee', function () {
 
 gulp.task('less', function () {
   return gulp.src(paths.less)
-    .pipe(less())
+    .pipe(less({
+      paths: [ path.join(__dirname, 'less', 'includes') ]
+    }))
     .pipe(prefix("last 1 version", "> 1%", "ie 8", "ie 7"))
     .pipe(gulp.dest(DEV_PATH + '/build/css'));
 });
@@ -104,51 +162,13 @@ gulp.task('css', function () {
     .pipe(gulp.dest(PROD_PATH + '/build/css'))
 });
 
-var requireConfig = {
-  baseUrl: DEV_PATH + '/build/js',
-  paths: {
-    director: '../../bower_components/director/build/director',
-    fastclick: '../../bower_components/fastclick/lib/fastclick',
-    jquery: '../../bower_components/jquery/dist/jquery',
-    moment: '../../bower_components/moment/min/moment.min',
-    react: '../../bower_components/react/react-with-addons',
-    underscore: '../../bower_components/underscore/underscore',
-    ratchet: '../../bower_components/ratchet/dist/js/ratchet',
-  },
-  shim: {
-    director: {
-      exports: 'Router'
-    },
-    bootstrap: {
-      deps: ['jquery']
-    },
-    fastclick: {
-      exports: 'FastClick'
-    },
-    jquery: {
-      exports: '$'
-    },
-    moment: {
-      exports: 'moment'
-    },
-    react: {
-      exports: "React"
-    },
-    underscore: {
-      exports: '_'
-    }
-  },
-  name: 'view/main',
-  out: 'main.js'
-};
-
-gulp.task('rjs-debug', ['compile'], function () {
-  return rjs(requireConfig)
+gulp.task('rjs', ['compile'], function () {
+  return rjs(requireConfig(bowerPaths))
     .pipe(gulp.dest(PROD_PATH + '/build/js'))
 });
 
-gulp.task('rjs', ['compile'], function () {
-  return rjs(requireConfig)
+gulp.task('rjs-min', ['compile'], function () {
+  return rjs(requireConfig(bowerPathsMin))
     .pipe(uglify())
     .pipe(gulp.dest(PROD_PATH + '/build/js'))
 });
@@ -161,9 +181,9 @@ gulp.task('requireConfig', function () {
 
 gulp.task('copy', ['bower', 'index', 'css', 'requireConfig']);
 
-gulp.task('build-debug', ['copy', 'rjs-debug']);
-
 gulp.task('build', ['copy', 'rjs']);
+
+gulp.task('build-min', ['copy', 'rjs-min']);
 
 function server(root) {
   http.createServer(

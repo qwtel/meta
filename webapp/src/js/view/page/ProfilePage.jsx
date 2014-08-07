@@ -41,7 +41,7 @@ define([
       if (this.state.changed) {
         button =
           <div className="content-padded">
-            <button className="btn btn-normal btn-block" onClick={this.onSaveClicked}>Save</button>
+            <button className="btn btn-primary btn-block" onClick={this.onSaveClicked}>Save</button>
           </div>;
       }
 

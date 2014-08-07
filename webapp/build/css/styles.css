@@ -10,8 +10,14 @@
 body {
   -webkit-touch-callout: none;
   -webkit-text-size-adjust: none;
+      -ms-text-size-adjust: none;
+          text-size-adjust: none;
   -webkit-user-select: none;
+     -moz-user-select: none;
+      -ms-user-select: none;
+          user-select: none;
   background: #f8f8f8;
+  font-family: 'Roboto Slab', serif;
 }
 .spinner {
   width: 40px;
@@ -184,6 +190,7 @@ body {
   color: #fff;
 }
 .other .about p {
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
   font-weight: 500;
 }
 .game > * {
@@ -196,14 +203,14 @@ body {
   height: 50px;
 }
 .game .move .profilepic {
-  line-height: 49px;
+  line-height: 48px;
   text-align: center;
   width: 50px;
   height: 50px;
   border-radius: 25px;
 }
 .game .move .name {
-  line-height: 34px;
+  line-height: 33px;
   text-align: center;
   width: 35px;
   height: 35px;
@@ -211,7 +218,7 @@ body {
   position: absolute;
   top: 7.5px;
   right: 0;
-  font-size: 14px;
+  font-size: 18px;
   font-weight: bold;
 }
 .game .result {
@@ -219,7 +226,7 @@ body {
   margin: 0 15px;
 }
 .game .points {
-  line-height: 49px;
+  line-height: 48px;
   text-align: center;
   width: 50px;
   height: 50px;
@@ -230,6 +237,7 @@ body {
   background: #f5f5f5;
 }
 .btn-block {
+  font-weight: bold;
   padding: 10px;
   font-size: 14px;
 }
@@ -242,6 +250,7 @@ body {
   min-height: 44px;
 }
 .input-row label {
+  font-family: 'Roboto Slab', serif;
   padding-top: 0;
   padding-bottom: 0;
   line-height: 44px;
