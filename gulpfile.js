@@ -38,7 +38,7 @@ var paths = {
   coffee: DEV_PATH + '/src/js/**/*.coffee',
   requireConfig: DEV_PATH + '/src/js/requireConfig.js',
 
-  less: DEV_PATH + '/src/css/styles.less',
+  less: DEV_PATH + '/src/css/main.less',
   css: DEV_PATH + '/build/css/**/*.css',
 
   images: DEV_PATH + '/img/*',
