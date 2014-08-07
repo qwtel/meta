@@ -9,6 +9,8 @@ var rjs = require('gulp-requirejs');
 var uglify = require('gulp-uglify');
 var prefix = require('gulp-autoprefixer');
 
+var imagemin = require('gulp-imagemin');
+
 var minifyHTML = require('gulp-minify-html');
 var minifyCSS = require('gulp-minify-css');
 
@@ -43,7 +45,7 @@ var paths = {
   
   css: DEV_PATH + '/build/css/**/*.css',
 
-  images: DEV_PATH + '/img/*',
+  images: DEV_PATH + '/images/*',
 
   index: DEV_PATH + '/index.html',
 
@@ -137,7 +139,8 @@ gulp.task('less', function () {
 
 gulp.task('images', function () {
   return gulp.src(paths.images)
-    .pipe(gulp.dest(PROD_PATH + '/img'));
+    .pipe(imagemin())
+    .pipe(gulp.dest(PROD_PATH + '/images'));
 });
 
 gulp.task('compile', ['js', 'jsx', 'coffee', 'less', 'images']);
