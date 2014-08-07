@@ -147,7 +147,7 @@ define([
                 'btn-negative': d[0] === Action.Defect
               });
               
-              var text = selected ? d[1] + ' »' : d[1];
+              var text = selected ? 'Go »' : d[1];
 
               return (
                 React.DOM.button({
