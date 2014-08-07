@@ -22,7 +22,6 @@ define([
       var self = this;
       GameService.getHistory()
         .then(function (games) {
-          console.log(games);
           self.setStateSilent({
             loading: false,
             games: games

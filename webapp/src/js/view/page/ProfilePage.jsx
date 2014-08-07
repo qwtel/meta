@@ -167,6 +167,27 @@ define([
       window.router.setRoute(Page.Login);
     },
 
+    onResetStatsClicked: function () {
+      var self = this;
+      
+      this.setState({
+        loading: true
+      });
+      
+      UserService.resetStats(this.props.user)
+        .then(function () {
+          self.setState({
+            loading: false
+          })
+        }, function (error) {
+          console.error(error);
+          self.setState({
+            loading: false,
+            error: true
+          });
+        });
+    },
+
     onUpdateFbClicked: function () {
       /*
        var self = this;
@@ -219,7 +240,7 @@ define([
       var dangerZone =
         <div className="content-padded">
           <button className="btn btn-outlined btn-negative btn-block" onClick={this.onLogoutClicked}>Logout</button>
-          <button className="btn btn-outlined btn-negative btn-block">Reset Stats</button>
+          <button className="btn btn-outlined btn-negative btn-block" onClick={this.onResetStatsClicked}>Reset Stats</button>
           <button className="btn btn-outlined btn-negative btn-block">Delete Account</button>
         </div>;
 

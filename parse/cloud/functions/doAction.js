@@ -34,6 +34,7 @@ function doSecondMove(user, move, game, userNum) {
 
   var player1 = userNum === 1 ? user : game.get('player1');
   var player2 = userNum === 2 ? user : game.get('player2');
+  
   var move1 = userNum === 1 ? move : game.get('move1');
   var move2 = userNum === 2 ? move : game.get('move2');
 
@@ -76,7 +77,7 @@ function updateStats(statSheet, result, move) {
 
   // TODO: score, ranking
 
-  return statSheet.set({
+  return statSheet.save({
     numGames: numGames,
     points: points,
     ppg: points / numGames
@@ -84,12 +85,13 @@ function updateStats(statSheet, result, move) {
 }
 
 function updatePlayer(player, game, result, move) {
-  var statSheet = updateStats(player.get('statSheet'), result, move);
-  player.set('statSheet', statSheet);
+  var statSheetPromise = updateStats(player.get('statSheet'), result, move);
+  
   if (player.get("queuedGames")) {
     player.remove('queuedGames', game);
   }
-  return player.save();
+  
+  return Parse.Promise.when(player.save(), statSheetPromise);
 }
 
 function doAction(req) {

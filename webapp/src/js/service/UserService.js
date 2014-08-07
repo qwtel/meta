@@ -10,16 +10,16 @@ define([
 
   UserService.updateStats = function (user) {
     return new Promise(function (res, rej) {
-      function fuckfuckfuck(user) {
+      function fetchStatSheet(user) {
         user.get("statSheet")
           .fetch()
           .then(res, rej);
       }
       
       if (user.get("statSheet")) {
-        fuckfuckfuck(user);
+        fetchStatSheet(user);
       } else {
-        user.fetch().then(fuckfuckfuck, rej);
+        user.fetch().then(fetchStatSheet, rej);
       }
     });
   };
@@ -45,6 +45,16 @@ define([
           rej(error, user)
         }
       });
+    });
+  };
+  
+  UserService.resetStats = function (user) {
+    return new Promise(function (res, rej) {
+      Parse.Cloud.run('resetStats')
+        .then(function(newUser) {
+          user.set('statSheet', newUser.get('statSheet'));
+          res(user);
+        }, rej);
     });
   };
 
