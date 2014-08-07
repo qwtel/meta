@@ -8,7 +8,8 @@ define([
   'view/common/Error',
   'enum/Page',
   'react',
-  'moment'
+  'moment',
+  'ratchet'
 ], function (UserService, FacebookService, SetStateSilent, PlayerView, Loading, Error, Page, React, Moment) {
   var BasicView = React.createClass({displayName: 'BasicView',
     getInitialState: function () {
@@ -78,7 +79,12 @@ define([
         return CellView({key: d[0], value: d[1]})
       });
 
-      return React.DOM.div(null, statsView);
+      return (
+        React.DOM.div(null, 
+          statsView, 
+          this.props.children
+        )
+        );
     }
   });
 
@@ -93,16 +99,21 @@ define([
         ['Score', stats.score],
         ['Rank', '#' + stats.rank]
       ];
-      return TableView({data: data})
+      return TableView({data: data});
     }
   });
 
   var TimeView = React.createClass({displayName: 'TimeView',
     render: function () {
       var user = this.props.user;
+
+      var now = new Date();
+      var serverUpdatedAt = new Date(user.updatedAt);
+      var updatedAt = serverUpdatedAt.getTime() > now.getTime() ? now : serverUpdatedAt
+
       var data = [
         ['Member since', Moment(user.createdAt).format('L')],
-        ['Last seen', Moment(user.updatedAt).format('LLLL')]
+        ['Last seen', Moment(updatedAt).fromNow()]
       ];
       return TableView({data: data})
     }

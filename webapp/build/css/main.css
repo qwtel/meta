@@ -17,7 +17,7 @@ body {
       -ms-user-select: none;
           user-select: none;
   background: #f8f8f8;
-  font-family: 'Roboto Slab', serif;
+  font-family: "Helvetica Neue", Helvetica, sans-serif;
 }
 .spinner {
   width: 40px;
@@ -185,6 +185,7 @@ body {
 .other .about h5,
 .other .about h6,
 .other .about p {
+  font-family: 'Roboto Slab', serif;
   display: inline-block;
   position: relative;
   color: #fff;
@@ -203,6 +204,7 @@ body {
   height: 50px;
 }
 .game .move .profilepic {
+  font-family: 'Roboto Slab', serif;
   line-height: 48px;
   text-align: center;
   width: 50px;
@@ -210,6 +212,7 @@ body {
   border-radius: 25px;
 }
 .game .move .name {
+  font-family: 'Roboto Slab', serif;
   line-height: 33px;
   text-align: center;
   width: 35px;
@@ -226,6 +229,7 @@ body {
   margin: 0 15px;
 }
 .game .points {
+  font-family: 'Roboto Slab', serif;
   line-height: 48px;
   text-align: center;
   width: 50px;
@@ -250,7 +254,6 @@ body {
   min-height: 44px;
 }
 .input-row label {
-  font-family: 'Roboto Slab', serif;
   padding-top: 0;
   padding-bottom: 0;
   line-height: 44px;
