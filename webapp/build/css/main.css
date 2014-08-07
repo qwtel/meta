@@ -73,15 +73,28 @@ body {
 .other {
   position: relative;
   width: 100%;
-  margin-bottom: 70px;
+  margin-bottom: 77.5px;
+}
+@media (max-width: 320px) {
+  .other {
+    margin-bottom: 70px;
+  }
 }
 .other .profilepic {
-  width: 115px;
-  height: 115px;
   position: absolute;
   left: 50%;
+  width: 115px;
+  height: 115px;
   margin-left: -57.5px;
-  top: 117.5px;
+  top: 112.5px;
+}
+@media (max-width: 320px) {
+  .other .profilepic {
+    width: 100px;
+    height: 100px;
+    margin-left: -50px;
+    top: 95px;
+  }
 }
 .other .profilepic img {
   width: 100%;
@@ -99,6 +112,12 @@ body {
 .other .profilepic .level {
   left: 104.60124255px;
   top: 90.48064509px;
+}
+@media (max-width: 320px) {
+  .other .profilepic .level {
+    left: 90.95760221px;
+    top: 78.67882182px;
+  }
 }
 .other .profilepic .level .dot {
   padding: 0 4px;
@@ -118,6 +137,12 @@ body {
   left: 10.39875745px;
   top: 90.48064509px;
 }
+@media (max-width: 320px) {
+  .other .profilepic .rank {
+    left: 9.04239779px;
+    top: 78.67882182px;
+  }
+}
 .other .profilepic .rank .dot {
   padding: 0 4px;
   font-size: 12px;
@@ -136,6 +161,12 @@ body {
   left: 57.5px;
   top: 0px;
 }
+@media (max-width: 320px) {
+  .other .profilepic .is-online {
+    left: 50px;
+    top: 0px;
+  }
+}
 .other .profilepic .is-online .dot {
   padding: 0 4px;
   font-size: 12px;
@@ -150,26 +181,85 @@ body {
   border-radius: 7.5px;
   background-color: #5cb85c;
 }
+.other .profilepic .enemy-move {
+  left: 57.5px;
+  top: 115px;
+}
+@media (max-width: 320px) {
+  .other .profilepic .enemy-move {
+    left: 50px;
+    top: 100px;
+  }
+}
+.other .profilepic .enemy-move .dot {
+  padding: 0 4px;
+  font-size: 12px;
+  text-align: center;
+  line-height: 25px;
+  position: relative;
+  top: -12.5px;
+  left: -12.5px;
+  display: inline-block;
+  min-width: 25px;
+  height: 25px;
+  border-radius: 12.5px;
+  background-color: #dddddd;
+}
+.other .profilepic .enemy-move .dot {
+  font-family: 'Roboto Slab', serif;
+  line-height: 23px;
+  text-align: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 12.5px;
+}
+.other .profilepic .enemy-move .dot.btn-positive {
+  border-color: #5cb85c;
+  background-color: #5cb85c;
+}
+.other .profilepic .enemy-move .dot.btn-primary {
+  border-color: #428bca;
+  background-color: #428bca;
+}
+.other .profilepic .enemy-move .dot.btn-negative {
+  border-color: #d9534f;
+  background-color: #d9534f;
+}
 .other .banner-wrapper {
   width: 100%;
-  height: 175px;
+  height: 170px;
+}
+@media (max-width: 320px) {
+  .other .banner-wrapper {
+    height: 145px;
+  }
 }
 .other .banner-wrapper .banner {
   width: 100%;
-  height: 175px;
   background-position: center center;
   -webkit-background-size: cover;
           background-size: cover;
+  height: 170px;
+}
+@media (max-width: 320px) {
+  .other .banner-wrapper .banner {
+    height: 145px;
+  }
 }
 .other .shield {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 117.25px;
   background: -webkit-gradient(linear, left top, left bottom, from(rgba(0, 0, 0, 0.5)), to(rgba(255, 255, 255, 0)));
   background: -webkit-linear-gradient(top, rgba(0, 0, 0, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
   background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+  height: 170px;
+}
+@media (max-width: 320px) {
+  .other .shield {
+    height: 145px;
+  }
 }
 .other .about {
   width: 100%;
@@ -211,6 +301,18 @@ body {
   height: 50px;
   border-radius: 25px;
 }
+.game .move .profilepic.btn-positive {
+  border-color: #5cb85c;
+  background-color: #5cb85c;
+}
+.game .move .profilepic.btn-primary {
+  border-color: #428bca;
+  background-color: #428bca;
+}
+.game .move .profilepic.btn-negative {
+  border-color: #d9534f;
+  background-color: #d9534f;
+}
 .game .move .name {
   font-family: 'Roboto Slab', serif;
   line-height: 33px;
@@ -223,6 +325,18 @@ body {
   right: 0;
   font-size: 18px;
   font-weight: bold;
+}
+.game .move .name.btn-positive {
+  border-color: #5cb85c;
+  background-color: #5cb85c;
+}
+.game .move .name.btn-primary {
+  border-color: #428bca;
+  background-color: #428bca;
+}
+.game .move .name.btn-negative {
+  border-color: #d9534f;
+  background-color: #d9534f;
 }
 .game .result {
   font-size: 32px;
@@ -239,6 +353,18 @@ body {
   font-size: 24px;
   font-weight: bold;
   background: #f5f5f5;
+}
+.game .points.btn-positive {
+  border-color: #5cb85c;
+  background-color: #5cb85c;
+}
+.game .points.btn-primary {
+  border-color: #428bca;
+  background-color: #428bca;
+}
+.game .points.btn-negative {
+  border-color: #d9534f;
+  background-color: #d9534f;
 }
 .btn-block {
   font-weight: bold;

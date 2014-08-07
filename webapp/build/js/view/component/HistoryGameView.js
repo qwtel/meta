@@ -27,13 +27,15 @@ define([
       } else {
         gt = '='
       }
+      
+      var points = sign(this.props.user.id === this.props.game.get('player1').id ? r1 : r2);
 
       var row =
         React.DOM.li({className: "table-view-cell game"}, 
           HistoryGameMoveView({player: this.props.game.get('player1'), move: this.props.game.get('move1')}), 
           React.DOM.p({className: "result"}, gt), 
           HistoryGameMoveView({player: this.props.game.get('player2'), move: this.props.game.get('move2')}), 
-          React.DOM.p({className: "points"}, sign(r2))
+          React.DOM.p({className: "points"}, points)
         );
 
       return row;

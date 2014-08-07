@@ -1,6 +1,8 @@
 define([
+  'enum/GameState',
+  'enum/Action',
   'react'
-], function (React) {
+], function (GameState, Action, React) {
   return React.createClass({
     render: function () {
       var user = this.props.user.toJSON();
@@ -19,19 +21,31 @@ define([
         ];
       }
 
+      var move;
+      if (this.props.move) {
+        var dot;
+        switch(this.props.move) {
+          case Action.Cooperate: dot = ["C", 'btn-positive']; break;
+          case Action.Pass: dot = ["E", 'btn-primary']; break;
+          case Action.Defect: dot = ["D", 'btn-negative']; break;
+        }
+        move =
+          <div className={"dot " + dot[1]}>
+            {dot[0]}
+          </div>
+      } else if (this.props.state === GameState.SecondMove) {
+        move = 
+          <div className="dot">
+            {'?'}
+          </div>;
+      }
+
       var playerView =
         <div className="other">
           <div className="banner-wrapper">
             { user.bannerUrl ? <div className="banner" style={{backgroundImage: "url(" + user.bannerUrl + ")"}} /> : null }
           </div>
           <div className="shield"/>
-          <div className="profilepic">
-            { user.pictureUrl ? <img src={user.pictureUrl} /> : null }
-            {dots}
-            <div className="is-online dot-pos">
-              { this.isOnline(user) ? <div className="dot"/> : null }
-            </div>
-          </div>
           <div className="about content-padded">
             <h4>
             {user.firstName}
@@ -39,6 +53,16 @@ define([
             </h4>
             <div>
               <p>{user.about}</p>
+            </div>
+          </div>
+          <div className="profilepic">
+            { user.pictureUrl ? <img src={user.pictureUrl} /> : null }
+            {dots}
+            <div className="is-online dot-pos">
+              { this.isOnline(user) ? <div className="dot"/> : null }
+            </div>
+            <div className="enemy-move dot-pos">
+              {move}
             </div>
           </div>
         </div>;

@@ -1,7 +1,8 @@
 define([
   'logic/GameLogic',
-  'logic/LevelLogic'
-], function (GameLogic, LevelLogic) {
+  'logic/LevelLogic',
+  'enum/GameState'
+], function (GameLogic, LevelLogic, GameState) {
   
   // keep in cache
   var currentGame;
@@ -23,28 +24,38 @@ define([
     }
   };
 
-  GameService.doAction = function (user, action) {
+  GameService.doAction = function (user, game, action) {
     return new Promise(function (res, rej) {
       GameService.clearCache();
       Parse.Cloud.run('doAction', {
-        action: action
+        action: action,
+        gameId: game.id
       }).then(function (xxx) {
+        // TODO: Message objects (s.js?)
         // TODO: Handle response (next game, notifications?)
         
-        var lastGame = xxx[0];
-        currentGame = xxx[1];
+        var newUser = xxx[0];
+        user.set(newUser.attributes);
+        
+        var lastGame = xxx[1];
+        currentGame = xxx[2];
 
-        var logic = new GameLogic(lastGame.get('move1'), lastGame.get('move2'));
-        var statSheet = user.get('statSheet');
-        
-        statSheet.set({
-          level: LevelLogic.isLevelUp(statSheet.get('points') + logic.result2(), statSheet.get('level')) ? statSheet.get('level') + 1 : statSheet.get('level'),
-          points: statSheet.get('points') + logic.result2()
-        });
-        
-        user.set({
-          currentGame: currentGame
-        });
+        if (lastGame.get('state') === GameState.GameOver) {
+          /*
+          // TODO: What is this?
+          try {
+            var logic = new GameLogic(lastGame.get('move1'), lastGame.get('move2'));
+          } catch (e) {
+            rej(e);
+          }
+          var statSheet = user.get('statSheet');
+
+          statSheet.set({
+            level: LevelLogic.isLevelUp(statSheet.get('points') + logic.result2(), statSheet.get('level')) ? statSheet.get('level') + 1 : statSheet.get('level'),
+            points: statSheet.get('points') + logic.result2()
+          });
+          */
+        }
         
         res(xxx);
       }, rej);

@@ -28,7 +28,7 @@ define([
       var loginPage =
         <div id="login" className="page content">
           <p className="content-padded">
-          <strong>Meta</strong> is a simple multi-player game that is loosely based on the
+          Meta is a simple multi-player game that is loosely based on the
                 {' '}
             <a href="http://en.wikipedia.org/wiki/Prisoner's_dilemma">Prisoner's Dilemma</a>
                 {', '}
@@ -41,16 +41,16 @@ define([
             <button className="btn btn-primary btn-block" onClick={this.onLoginClicked} style={{backgroundColor: "#4c69ba"}}>Login with Facebook</button>
           </p>
           <p className="content-padded">
-            <strong>Meta</strong> will use your public information for the purpose of this game.
+            <strong>Note:</strong> Meta will use some of your public information for this game.
             {' '}
             Specifically it will use your profile picture, cover photo, first name (optional) and 'about me' text (if available, optional). 
           </p>
           <p className="content-padded">
-            <strong>Meta</strong> will never post on your wall.
+            Meta will never post on your wall.
             <br/>
-            <strong>Meta</strong> will never let you down.
+            Meta will never let you down.
             <br/>
-            <strong>Meta</strong> will never run around and desert you.
+            Meta will never run around and desert you.
           </p>
         </div>;
 

@@ -1,18 +1,35 @@
+@import 'variables';
+
+@profileSize: 115px;
+@bannerHeight: 170px;
+
+@profileSizeS: 100px;
+@bannerHeightS: 145px;
+
+@breakPoint: 320px;
+
 .other {
   position: relative;
   width: 100%;
-  margin-bottom: 70px;
-
-  @profileSize: 115px;
-  @bannerHeight: 175px;
-
+  margin-bottom: @profileSize / 2 + 20px;
+  @media(max-width: @breakPoint) {
+    margin-bottom: @profileSizeS / 2 + 20px;
+  }
+  
   .profilepic {
-    width: @profileSize;
-    height: @profileSize;
     position: absolute;
     left: 50%;
+    width: @profileSize;
+    height: @profileSize;
     margin-left: -(@profileSize / 2);
     top: (@bannerHeight - (@profileSize / 2));
+    
+    @media(max-width: @breakPoint) {
+      width: @profileSizeS;
+      height: @profileSizeS;
+      margin-left: -(@profileSizeS / 2);
+      top: (@bannerHeightS - (@profileSizeS / 2));
+    }
 
     img {
       width: 100%;
@@ -49,10 +66,19 @@
     @a: @profileSize / 2;
     @b: @profileSize / 2;
     @r: @profileSize / 2;
+    
+    @aS: @profileSizeS / 2;
+    @bS: @profileSizeS / 2;
+    @rS: @profileSizeS / 2;
 
     .pos-on-circle(@deg) {
       left: @a + @r * cos(@deg);
       top: @b + @r * sin(@deg);
+      
+      @media(max-width: @breakPoint) {
+        left: @aS + @rS * cos(@deg);
+        top: @bS + @rS * sin(@deg);
+      }
     }
 
     .level {
@@ -69,16 +95,34 @@
       .pos-on-circle(-90deg);
       .dot-style(15px, #5cb85c);
     }
+    
+    .enemy-move {
+      .pos-on-circle(90deg);
+      .dot-style(25px);
+      
+      .dot {
+        .bubbly(25px);
+      }
+    }
   }
 
   .banner-wrapper {
     width: 100%;
+    
     height: @bannerHeight;
+    @media(max-width: @breakPoint) {
+      height: @bannerHeightS;
+    }
+    
     .banner {
       width: 100%;
-      height: @bannerHeight;
       background-position: center center;
       background-size: cover;
+      
+      height: @bannerHeight;
+      @media(max-width: @breakPoint) {
+        height: @bannerHeightS;
+      }
     }
   }
 
@@ -87,8 +131,12 @@
     top: 0;
     left: 0;
     width: 100%;
-    height: @bannerHeight * 0.67;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0.5) 0%, rgba(255, 255, 255, 0) 100%);
+
+    height: @bannerHeight;
+    @media(max-width: @breakPoint) {
+      height: @bannerHeightS;
+    }
   }
 
   .about {

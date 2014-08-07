@@ -1,7 +1,9 @@
 /** @jsx React.DOM */
 define([
+  'enum/GameState',
+  'enum/Action',
   'react'
-], function (React) {
+], function (GameState, Action, React) {
   return React.createClass({
     render: function () {
       var user = this.props.user.toJSON();
@@ -20,19 +22,31 @@ define([
         ];
       }
 
+      var move;
+      if (this.props.move) {
+        var dot;
+        switch(this.props.move) {
+          case Action.Cooperate: dot = ["C", 'btn-positive']; break;
+          case Action.Pass: dot = ["E", 'btn-primary']; break;
+          case Action.Defect: dot = ["D", 'btn-negative']; break;
+        }
+        move =
+          React.DOM.div({className: "dot " + dot[1]}, 
+            dot[0]
+          )
+      } else if (this.props.state === GameState.SecondMove) {
+        move = 
+          React.DOM.div({className: "dot"}, 
+            '?'
+          );
+      }
+
       var playerView =
         React.DOM.div({className: "other"}, 
           React.DOM.div({className: "banner-wrapper"}, 
              user.bannerUrl ? React.DOM.div({className: "banner", style: {backgroundImage: "url(" + user.bannerUrl + ")"}}) : null
           ), 
           React.DOM.div({className: "shield"}), 
-          React.DOM.div({className: "profilepic"}, 
-             user.pictureUrl ? React.DOM.img({src: user.pictureUrl}) : null, 
-            dots, 
-            React.DOM.div({className: "is-online dot-pos"}, 
-               this.isOnline(user) ? React.DOM.div({className: "dot"}) : null
-            )
-          ), 
           React.DOM.div({className: "about content-padded"}, 
             React.DOM.h4(null, 
             user.firstName, 
@@ -40,6 +54,16 @@ define([
             ), 
             React.DOM.div(null, 
               React.DOM.p(null, user.about)
+            )
+          ), 
+          React.DOM.div({className: "profilepic"}, 
+             user.pictureUrl ? React.DOM.img({src: user.pictureUrl}) : null, 
+            dots, 
+            React.DOM.div({className: "is-online dot-pos"}, 
+               this.isOnline(user) ? React.DOM.div({className: "dot"}) : null
+            ), 
+            React.DOM.div({className: "enemy-move dot-pos"}, 
+              move
             )
           )
         );

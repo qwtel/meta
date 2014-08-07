@@ -7,8 +7,9 @@ define([
   'view/common/Error',
   'view/mixin/SetStateSilent',
   'enum/Action',
+  'enum/GameState',
   'react'
-], function (GameService, PlayerView, HistoryGameView, Loading, Error, SetStateSilent, Action, React) {
+], function (GameService, PlayerView, HistoryGameView, Loading, Error, SetStateSilent, Action, GameState, React) {
   return React.createClass({
     mixins: [SetStateSilent],
 
@@ -33,10 +34,10 @@ define([
           .then(function (game) {
             self.setStateSilent({
               loading: false,
-              game: game
+              game: game,
             });
           }, function (error) {
-            console.error(error);
+            console.error(error.message);
             self.setStateSilent({
               loading: false,
               error: true
@@ -60,18 +61,32 @@ define([
             loadingResult: true
           });
 
-          GameService.doAction(self.props.user, action)
+          GameService.doAction(self.props.user, self.state.game, action)
             .then(function (res) {
-              var game = res[0];
-              var nextGame = res[1];
-              self.setState({
-                lastGame: game,
-                game: nextGame,
-                showResult: true,
-                loadingResult: false,
-                selected: null
-              });
-            }, function () {
+              
+              var game = res[1];
+              var nextGame = res[2];
+
+              // TODO: dynamic dispatch? something?
+              if (game.get('state') === GameState.GameOver) {
+                console.log(res);
+                self.setState({
+                  lastGame: game,
+                  game: nextGame,
+                  showResult: true,
+                  loadingResult: false,
+                  selected: null
+                });
+              } else {
+                self.setState({
+                  lastGame: game,
+                  game: nextGame,
+                  showResult: false,
+                  loadingResult: false,
+                  selected: null
+                });
+              }
+            }, function (error) {
               console.error(error);
               self.setState({
                 loadingResult: false,
@@ -100,20 +115,22 @@ define([
       var playerView = null;
       var loading = null;
 
+      var userNum;
+      
       if (this.state.error) {
         loading = Error(null);
       } else if (this.state.loading) {
         loading = Loading(null);
       } else {
         if (this.state.showResult) {
-          if (this.state.lastGame) {
-            playerView = PlayerView({user: this.state.lastGame.get('player1')});
-          }
+          
+          userNum = this.state.lastGame.get('player1').id !== this.props.user.id ? 1 : 2;
+          playerView = PlayerView({user: this.state.lastGame.get('player' + userNum), move: this.state.lastGame.get('move' + userNum)});
 
           buttons =
             React.DOM.div(null, 
               React.DOM.ul({className: "table-view history", style: {marginTop: 0}}, 
-                HistoryGameView({key: this.state.lastGame.id, game: this.state.lastGame})
+                HistoryGameView({key: this.state.lastGame.id, user: this.props.user, game: this.state.lastGame})
               ), 
               React.DOM.p({className: "content-padded", style: {paddingTop: 0}}, 
                 React.DOM.button({className: "btn btn-normal btn-outlined btn-block", onClick: this.nextGame}, "Next")
@@ -123,7 +140,8 @@ define([
         }
         else {
           if (this.state.game) {
-            playerView = PlayerView({user: this.state.game.get('player1')});
+            userNum = this.state.game.get('player1').id !== this.props.user.id ? 1 : 2;
+            playerView = PlayerView({user: this.state.game.get('player' + userNum), state: this.state.game.get('state')});
           }
 
           if (this.state.loadingResult) {

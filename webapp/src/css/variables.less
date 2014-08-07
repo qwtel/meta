@@ -1,0 +1,27 @@
+@green: #5cb85c;
+@blue: #428bca;
+@red: #d9534f;
+
+.bubbly(@s) {
+  font-family: 'Roboto Slab', serif;
+  line-height: @s - 2px;
+  text-align: center;
+  width: @s;
+  height: @s;
+  border-radius: @s / 2;
+  
+  &.btn-positive {
+    border-color: @green;
+    background-color: @green;
+  }
+  
+  &.btn-primary {
+    border-color: @blue;
+    background-color: @blue;
+  }
+  
+  &.btn-negative {
+    border-color: @red;
+    background-color: @red;
+  }
+}

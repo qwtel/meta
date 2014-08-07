@@ -29,7 +29,7 @@ define([
       var loginPage =
         React.DOM.div({id: "login", className: "page content"}, 
           React.DOM.p({className: "content-padded"}, 
-          React.DOM.strong(null, "Meta"), " is a simple multi-player game that is loosely based on the", 
+          "Meta is a simple multi-player game that is loosely based on the", 
                 ' ', 
             React.DOM.a({href: "http://en.wikipedia.org/wiki/Prisoner's_dilemma"}, "Prisoner's Dilemma"), 
                 ', ', 
@@ -42,16 +42,16 @@ define([
             React.DOM.button({className: "btn btn-primary btn-block", onClick: this.onLoginClicked, style: {backgroundColor: "#4c69ba"}}, "Login with Facebook")
           ), 
           React.DOM.p({className: "content-padded"}, 
-            React.DOM.strong(null, "Meta"), " will use your public information for the purpose of this game.", 
+            React.DOM.strong(null, "Note:"), " Meta will use some of your public information for this game.", 
             ' ', 
             "Specifically it will use your profile picture, cover photo, first name (optional) and 'about me' text (if available, optional)." 
           ), 
           React.DOM.p({className: "content-padded"}, 
-            React.DOM.strong(null, "Meta"), " will never post on your wall.", 
+            "Meta will never post on your wall.", 
             React.DOM.br(null), 
-            React.DOM.strong(null, "Meta"), " will never let you down.", 
+            "Meta will never let you down.", 
             React.DOM.br(null), 
-            React.DOM.strong(null, "Meta"), " will never run around and desert you."
+            "Meta will never run around and desert you."
           )
         );
 

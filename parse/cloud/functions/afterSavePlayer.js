@@ -25,7 +25,9 @@ function saveStatSheet(user) {
         numPass: 0,
         numDefect: 0
       }).then(function (statSheet) {
-        return user.save('statSheet', statSheet);
+        return user.save({
+          statSheet: statSheet
+        });
       });
     });
   }

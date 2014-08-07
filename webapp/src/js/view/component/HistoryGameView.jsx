@@ -26,13 +26,15 @@ define([
       } else {
         gt = '='
       }
+      
+      var points = sign(this.props.user.id === this.props.game.get('player1').id ? r1 : r2);
 
       var row =
         <li className="table-view-cell game">
           <HistoryGameMoveView player={this.props.game.get('player1')} move={this.props.game.get('move1')} />
           <p className="result">{gt}</p>
           <HistoryGameMoveView player={this.props.game.get('player2')} move={this.props.game.get('move2')} />
-          <p className="points">{sign(r2)}</p>
+          <p className="points">{points}</p>
         </li>;
 
       return row;

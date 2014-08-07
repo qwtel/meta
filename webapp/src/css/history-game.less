@@ -1,3 +1,5 @@
+@import 'variables';
+
 .game {
   > * {
     float: left;
@@ -7,15 +9,6 @@
   @size: 50px;
   @size2: 35px;
   
-  .bubbly(@s) {
-    font-family: 'Roboto Slab', serif;
-    line-height: @s - 2px;
-    text-align: center;
-    width: @s;
-    height: @s;
-    border-radius: @s / 2;
-  }
-
   .move {
     position: relative;
     width: 75px;

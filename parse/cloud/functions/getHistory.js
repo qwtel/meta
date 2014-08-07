@@ -7,6 +7,10 @@ var Game = Parse.Object.extend("Game");
 function getHistory(req) {
   return withMasterKey(function () {
     var user = req.user;
+    if (!user) {
+      return Parse.Promise.error('Not logged in');
+    }
+    
     var page = req.params.page || 1;
 
     var isPlayer1 = new Parse.Query(Game)

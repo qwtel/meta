@@ -12,10 +12,12 @@ function beforeSavePlayer(req) {
     var value = user.get(key);
     var result = Parse.Promise.as(true);
     if (!value || value.trim().length === 0) {
+      // TODO: failes on initial request (before fb login)
       //result = Parse.Promise.error(key + ' missing');
     } 
     return result;
   }
+  
 
   return required('firstName').then(function () {
     limit('firstName', 30);

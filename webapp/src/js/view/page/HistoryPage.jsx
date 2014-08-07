@@ -22,6 +22,7 @@ define([
       var self = this;
       GameService.getHistory()
         .then(function (games) {
+          console.log(games);
           self.setStateSilent({
             loading: false,
             games: games
@@ -42,11 +43,13 @@ define([
         content = <Error />;
       } else if (this.state.loading) {
         content = <Loading />;
+      } else if (this.state.games.length === 0) {
+        content = <Error message="No games to display." />
       } else {
         var games = this.state.games.map(function (game) {
-          return <HistoryGameView key={game.id} game={game} />
-        });
-
+          return <HistoryGameView key={game.id} game={game} user={this.props.user} />
+        }, this);
+        
         content =
           <ul className="table-view" style={{marginTop: 0}}>
             {games}

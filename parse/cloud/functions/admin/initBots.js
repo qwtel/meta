@@ -3,12 +3,13 @@ var BotType = require('cloud/enum/BotType.js');
 var whenAdmin = require('cloud/helper/whenAdmin.js');
 var withMasterKey = require('cloud/helper/withMasterKey.js');
 
-var Bot = Parse.Object.extend("Bot");
-
 function createBot(botType, firstName, about, pictureUrl) {
-  var bot = new Bot();
+  var bot = new Parse.User();
 
   return bot.save({
+    username: BotType.keys()[botType] + 'Bot',
+    password: Math.random().toString(36).substring(7),
+    email: BotType.keys()[botType] + "Bot@meta.parseapp.com",
     botType: botType,
     firstName: firstName,
     about: about,
