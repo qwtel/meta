@@ -38,7 +38,9 @@ var paths = {
   coffee: DEV_PATH + '/src/js/**/*.coffee',
   requireConfig: DEV_PATH + '/src/js/requireConfig.js',
 
-  less: DEV_PATH + '/src/css/main.less',
+  less: DEV_PATH + '/src/css/**/*.less',
+  lessEntryPoint: DEV_PATH + '/src/css/main.less',
+  
   css: DEV_PATH + '/build/css/**/*.css',
 
   images: DEV_PATH + '/img/*',
@@ -125,7 +127,7 @@ gulp.task('coffee', function () {
 });
 
 gulp.task('less', function () {
-  return gulp.src(paths.less)
+  return gulp.src(paths.lessEntryPoint)
     .pipe(less({
       paths: [ path.join(__dirname, 'less', 'includes') ]
     }))
