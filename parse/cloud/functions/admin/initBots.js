@@ -21,10 +21,10 @@ function initBots(req) {
     return withMasterKey(function () {
 
       var botsData = [
-        [BotType.Coop, 'Coop Bot', 'I always cooperate', 'images/coop.jpg'],
-        [BotType.Defect, 'Defect Bot', 'I always defect', 'images/defect.jpg'],
-        [BotType.Pass, 'Escape Bot', 'I always escape', 'images/escape.jpg'],
-        [BotType.Random, 'Random Bot', "I have no idea what I'm doing", 'images/random.jpg']
+        [BotType.Coop, 'Coop Bot', 'I always cooperate', '//i.imgur.com/BoAzl1d.jpg'],
+        [BotType.Defect, 'Defect Bot', 'I always defect', '//i.imgur.com/33K5sLb.jpg'],
+        [BotType.Pass, 'Escape Bot', 'I always escape', '//i.imgur.com/rmm1m4k.jpg'],
+        [BotType.Random, 'Random Bot', "I have no idea what I'm doing", '//i.imgur.com/BXQD1an.jpg']
       ];
 
       var promises = botsData.map(function (botData) {
