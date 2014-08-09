@@ -41,16 +41,16 @@ define('service/UserService',[
 
   UserService.updateStats = function (user) {
     return new Promise(function (res, rej) {
-      function fuckfuckfuck(user) {
+      function fetchStatSheet(user) {
         user.get("statSheet")
           .fetch()
           .then(res, rej);
       }
       
       if (user.get("statSheet")) {
-        fuckfuckfuck(user);
+        fetchStatSheet(user);
       } else {
-        user.fetch().then(fuckfuckfuck, rej);
+        user.fetch().then(fetchStatSheet, rej);
       }
     });
   };
@@ -76,6 +76,16 @@ define('service/UserService',[
           rej(error, user)
         }
       });
+    });
+  };
+  
+  UserService.resetStats = function (user) {
+    return new Promise(function (res, rej) {
+      Parse.Cloud.run('resetStats')
+        .then(function(newUser) {
+          user.set('statSheet', newUser.get('statSheet'));
+          res(user);
+        }, rej);
     });
   };
 
@@ -21945,6 +21955,27 @@ define('view/page/ProfilePage',[
       window.router.setRoute(Page.Login);
     },
 
+    onResetStatsClicked: function () {
+      var self = this;
+      
+      this.setState({
+        loading: true
+      });
+      
+      UserService.resetStats(this.props.user)
+        .then(function () {
+          self.setState({
+            loading: false
+          })
+        }, function (error) {
+          console.error(error);
+          self.setState({
+            loading: false,
+            error: true
+          });
+        });
+    },
+
     onUpdateFbClicked: function () {
       /*
        var self = this;
@@ -21997,7 +22028,7 @@ define('view/page/ProfilePage',[
       var dangerZone =
         React.DOM.div({className: "content-padded"}, 
           React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onLogoutClicked}, "Logout"), 
-          React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Reset Stats"), 
+          React.DOM.button({className: "btn btn-outlined btn-negative btn-block", onClick: this.onResetStatsClicked}, "Reset Stats"), 
           React.DOM.button({className: "btn btn-outlined btn-negative btn-block"}, "Delete Account")
         );
 
@@ -22269,7 +22300,6 @@ define('view/page/HistoryPage',[
       var self = this;
       GameService.getHistory()
         .then(function (games) {
-          console.log(games);
           self.setStateSilent({
             loading: false,
             games: games
