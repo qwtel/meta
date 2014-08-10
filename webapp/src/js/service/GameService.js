@@ -31,14 +31,16 @@ define([
         action: action,
         gameId: game.id
       }).then(function (xxx) {
-        // TODO: Message objects (s.js?)
         // TODO: Handle response (next game, notifications?)
-        
+
         var newUser = xxx[0];
-        user.set(newUser.attributes);
-        
         var lastGame = xxx[1];
         currentGame = xxx[2];
+        
+        user.set({
+          updatedAt: newUser.updatedAt,
+          currentGame: currentGame
+        });
 
         if (lastGame.get('state') === GameState.GameOver) {
           /*

@@ -68,7 +68,6 @@ define([
 
               // TODO: dynamic dispatch? something?
               if (game.get('state') === GameState.GameOver) {
-                console.log(res);
                 self.setState({
                   lastGame: game,
                   game: nextGame,
