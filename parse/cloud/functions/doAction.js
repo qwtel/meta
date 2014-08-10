@@ -32,8 +32,8 @@ function doSecondMove(user, move, game, userNum) {
     state: GameState.GameOver
   });
 
-  var player1 = userNum === 1 ? user : game.get('player1');
-  var player2 = userNum === 2 ? user : game.get('player2');
+  var player1 = game.get('player1');
+  var player2 = game.get('player2');
   
   var move1 = userNum === 1 ? move : game.get('move1');
   var move2 = userNum === 2 ? move : game.get('move2');
@@ -76,15 +76,21 @@ function updateStats(statSheet, result, move) {
   }
 
   // TODO: score, ranking
-
-  return statSheet.save({
+  
+  var obj = {
     numGames: numGames,
     points: points,
     ppg: points / numGames
-  });
+  };
+  
+  //console.log(obj);
+  
+  return statSheet.save(obj);
 }
 
 function updatePlayer(player, game, result, move) {
+  console.log(player);
+  
   var statSheetPromise = updateStats(player.get('statSheet'), result, move);
   
   if (player.get("queuedGames")) {
