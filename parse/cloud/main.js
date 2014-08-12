@@ -8,6 +8,9 @@ var resetStats = require('cloud/functions/resetStats.js');
 
 var initBots = require('cloud/functions/admin/initBots.js');
 var resetCurrentGame = require('cloud/functions/admin/resetCurrentGame.js');
+var initLinearRanks = require('cloud/functions/admin/initLinearRanks');
+
+var calculateRankBounds = require('cloud/jobs/calculateRankBounds');
 
 var Bot = Parse.Object.extend("Bot");
 
@@ -44,3 +47,7 @@ Parse.Cloud.define('resetStats', sendResponse(resetStats));
 // Admin functions
 Parse.Cloud.define("initBots", sendResponse(initBots));
 Parse.Cloud.define("resetCurrentGame", sendResponse(resetCurrentGame));
+Parse.Cloud.define("initLinearRanks", sendResponse(initLinearRanks));
+
+// Background jobs
+Parse.Cloud.job('calculateRankBounds', calculateRankBounds);
