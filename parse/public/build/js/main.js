@@ -20728,13 +20728,45 @@ define('view/component/PlayerView',[
   'react'
 ], function (GameState, Action, React) {
   return React.createClass({
+    getInitialState: function () {
+      return {
+        rank: undefined
+      }
+    },
+    
+    getRank: function (statSheet) {
+      var stats = statSheet.toJSON();
+      var ppg = (stats.points / stats.numGames) || 0;
+      return new Parse.Query("RankBound")
+        .greaterThanOrEqualTo('min', ppg)
+        .ascending('min')
+        .first()
+        .then(function (rankBound) {
+          return rankBound.get('rank');
+        });
+    },
+    
+    componentDidMount: function () {
+      if (this.props.calcRank) {
+        var self = this;
+        this.getRank(this.props.user.get('statSheet'))
+          .then(function (rank) {
+            self.setState({
+              rank: rank
+            })
+          });
+      }
+    },
+    
     render: function () {
       var user = this.props.user.toJSON();
 
       var dots = null;
       var statsSheet = this.props.user.get('statSheet');
       var level, rank;
-      if (statsSheet && (level = statsSheet.get('level')) !== undefined && (rank = statsSheet.get('rank')) !== undefined) {
+      if (statsSheet && (level = statsSheet.get('level')) !== undefined && 
+        (rank = this.props.rank || this.state.rank) !== undefined) {
+        
         dots = [
           React.DOM.div({key: "level", className: "level dot-pos"}, 
             React.DOM.span({className: "dot"}, level)
@@ -20935,8 +20967,8 @@ define('view/page/ProfilePage',[
         ['Level', stats.level],
         ['Points', stats.points],
         ['Games', stats.numGames],
-        ['Points per Game', (stats.points / stats.numGames).toFixed(4)],
-        ['Score', stats.score],
+        ['Points per Game', ((stats.points / stats.numGames) || 0).toFixed(4)],
+        //['Score', stats.score],
         ['Rank', '#' + stats.rank]
       ];
       return TableView({data: data});
@@ -20960,12 +20992,26 @@ define('view/page/ProfilePage',[
   });
 
   return React.createClass({
+    
+    getRank: function (statSheet) {
+      var stats = statSheet.toJSON();
+      var ppg = (stats.points / stats.numGames) || 0;
+      return new Parse.Query("RankBound")
+        .greaterThanOrEqualTo('min', ppg)
+        .ascending('min')
+        .first()
+        .then(function (rankBound) {
+          return rankBound.get('rank');
+        });
+    },
+
     mixins: [SetStateSilent],
 
     getInitialState: function () {
       return {
         loading: true,
-        error: false
+        error: false,
+        rank: 0
       }
     },
 
@@ -20973,8 +21019,10 @@ define('view/page/ProfilePage',[
       var self = this;
       if (this.props.user) {
         UserService.updateStats(this.props.user)
-          .then(function () {
+          .then(this.getRank)
+          .then(function (rank) {
             self.setStateSilent({
+              rank: rank,
               loading: false
             });
           }, function (error) {
@@ -21053,8 +21101,10 @@ define('view/page/ProfilePage',[
       if (this.props.user && this.props.user.get('statSheet') && this.props.user.get('statSheet')) {
         var user = this.props.user.toJSON();
         var stats = this.props.user.get('statSheet').toJSON();
+        stats.rank = this.state.rank;
+          
         playerView =
-          PlayerView({user: this.props.user});
+          PlayerView({user: this.props.user, rank: this.state.rank});
 
         basic =
           BasicView({user: user, onSaveClicked: this.onSaveClicked});
@@ -21524,7 +21574,7 @@ define('view/page/PlayPage',[
         if (this.state.showResult) {
           
           userNum = this.state.lastGame.get('player1').id !== this.props.user.id ? 1 : 2;
-          playerView = PlayerView({user: this.state.lastGame.get('player' + userNum), move: this.state.lastGame.get('move' + userNum)});
+          playerView = PlayerView({calcRank: true, user: this.state.lastGame.get('player' + userNum), move: this.state.lastGame.get('move' + userNum)});
 
           buttons =
             React.DOM.div(null, 
@@ -21540,7 +21590,7 @@ define('view/page/PlayPage',[
         else {
           if (this.state.game) {
             userNum = this.state.game.get('player1').id !== this.props.user.id ? 1 : 2;
-            playerView = PlayerView({user: this.state.game.get('player' + userNum), state: this.state.game.get('state')});
+            playerView = PlayerView({calcRank: true, user: this.state.game.get('player' + userNum), state: this.state.game.get('state')});
           }
 
           if (this.state.loadingResult) {

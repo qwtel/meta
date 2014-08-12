@@ -93,8 +93,8 @@ define([
         ['Level', stats.level],
         ['Points', stats.points],
         ['Games', stats.numGames],
-        ['Points per Game', (stats.points / stats.numGames).toFixed(4)],
-        ['Score', stats.score],
+        ['Points per Game', ((stats.points / stats.numGames) || 0).toFixed(4)],
+        //['Score', stats.score],
         ['Rank', '#' + stats.rank]
       ];
       return <TableView data={data} />;
@@ -118,12 +118,26 @@ define([
   });
 
   return React.createClass({
+    
+    getRank: function (statSheet) {
+      var stats = statSheet.toJSON();
+      var ppg = (stats.points / stats.numGames) || 0;
+      return new Parse.Query("RankBound")
+        .greaterThanOrEqualTo('min', ppg)
+        .ascending('min')
+        .first()
+        .then(function (rankBound) {
+          return rankBound.get('rank');
+        });
+    },
+
     mixins: [SetStateSilent],
 
     getInitialState: function () {
       return {
         loading: true,
-        error: false
+        error: false,
+        rank: 0
       }
     },
 
@@ -131,8 +145,10 @@ define([
       var self = this;
       if (this.props.user) {
         UserService.updateStats(this.props.user)
-          .then(function () {
+          .then(this.getRank)
+          .then(function (rank) {
             self.setStateSilent({
+              rank: rank,
               loading: false
             });
           }, function (error) {
@@ -211,8 +227,10 @@ define([
       if (this.props.user && this.props.user.get('statSheet') && this.props.user.get('statSheet')) {
         var user = this.props.user.toJSON();
         var stats = this.props.user.get('statSheet').toJSON();
+        stats.rank = this.state.rank;
+          
         playerView =
-          <PlayerView user={this.props.user} />;
+          <PlayerView user={this.props.user} rank={this.state.rank} />;
 
         basic =
           <BasicView user={user} onSaveClicked={this.onSaveClicked} />;

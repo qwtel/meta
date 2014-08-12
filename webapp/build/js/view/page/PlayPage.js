@@ -124,7 +124,7 @@ define([
         if (this.state.showResult) {
           
           userNum = this.state.lastGame.get('player1').id !== this.props.user.id ? 1 : 2;
-          playerView = PlayerView({user: this.state.lastGame.get('player' + userNum), move: this.state.lastGame.get('move' + userNum)});
+          playerView = PlayerView({calcRank: true, user: this.state.lastGame.get('player' + userNum), move: this.state.lastGame.get('move' + userNum)});
 
           buttons =
             React.DOM.div(null, 
@@ -140,7 +140,7 @@ define([
         else {
           if (this.state.game) {
             userNum = this.state.game.get('player1').id !== this.props.user.id ? 1 : 2;
-            playerView = PlayerView({user: this.state.game.get('player' + userNum), state: this.state.game.get('state')});
+            playerView = PlayerView({calcRank: true, user: this.state.game.get('player' + userNum), state: this.state.game.get('state')});
           }
 
           if (this.state.loadingResult) {
