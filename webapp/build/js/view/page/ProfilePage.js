@@ -8,8 +8,7 @@ define([
   'view/common/Error',
   'enum/Page',
   'react',
-  'moment',
-  'ratchet'
+  'moment'
 ], function (UserService, FacebookService, SetStateSilent, PlayerView, Loading, Error, Page, React, Moment) {
   var BasicView = React.createClass({displayName: 'BasicView',
     getInitialState: function () {
