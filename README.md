@@ -6,7 +6,7 @@ However, the police admit they don't have enough evidence to convict you on the 
 So they offer each of you a Faustian bargain:
 Each of you has the opportunity either to *defect* by testifying, 
 or to *cooperate* with the other by remaining silent.
-Additionally, you can also *escape* the prison.
+You can also *escape* the prison but not without risk.
 
 Your outcome depends on the action of the other prisoner:
 
@@ -14,9 +14,9 @@ Your outcome depends on the action of the other prisoner:
 * If you *defect* while the other *cooperates*, you will go free because of to your compliance, while the other will go to prison. (Awarding you 4 points, while the other loses 1)
 * If both of you *defect* you will both go to prison. (Each of you losing 1 point)
 * However, if you *escape* while the other *defects*, the other will go to prison because of his testimony.
-No bounty will be put on you, since the police already have an offender. (Awarding you 4 points, while the loses 1)
-* If you both *escape* half of the bounty will be put on each of you. (Each of you getting 0 points)
-* Finally, if you *escape* while the other *cooperates*, the other will go free because of lack of evidence, while there will be a large bounty on you. (Awarding the other 4 points, while you lose 1).
+No bounty will be put on your head, since the police already have an offender. (Awarding you 4 points, while the loses 1)
+* If you both *escape* half of the bounty will be put on each of your heads. (Each of you getting 0 points)
+* Finally, if you *escape* while the other *cooperates*, the other will go free because of lack of evidence, while there will be a large bounty on your head. (Awarding the other 4 points, while you lose 1).
 
 This basically means that: 
 
