@@ -1,23 +1,22 @@
 # Meta
 
 Together with a stranger you are arrested and imprisoned. 
-Each of you is in solitary confinement with no means of speaking to or exchanging messages with the other. 
+You are put in solitary confinement with no means of speaking to or exchanging messages with each other. 
 However, the police admit they don't have enough evidence to convict you on the charge. 
 So they offer each of you a Faustian bargain:
 Each of you has the opportunity either to *defect* by testifying, 
 or to *cooperate* with the other by remaining silent.
-Additionally, you can also *escape* the prison, provoking a bounty and manhunt.
+Additionally, you can also *escape* the prison.
 
-Here's how it goes:
+Your outcome depends on the action of the other prisoner:
 
 * If both of you *cooperate* you will both go free. (Awarding each of you 2 points)
-* If you *defect* while the other *cooperates*, you will go free due to your compliance, while he will go to prison. (Awarding you 4 points, while he loses 1)
+* If you *defect* while the other *cooperates*, you will go free because of to your compliance, while the other will go to prison. (Awarding you 4 points, while the other loses 1)
 * If both of you *defect* you will both go to prison. (Each of you losing 1 point)
-* However, if you *escape* while the other *defects*, he will go to prison due to his testimony.
-No bounty will be put on you, since the police already have an offender. (Awarding you 4 points, while he loses 1)
+* However, if you *escape* while the other *defects*, the other will go to prison because of his testimony.
+No bounty will be put on you, since the police already have an offender. (Awarding you 4 points, while the loses 1)
 * If you both *escape* half of the bounty will be put on each of you. (Each of you getting 0 points)
-* Finally, if you *escape* while the other *cooperates*, you will come under strong suspicion, 
-leading to a large-scale manhunt, while to other will go free due to lack of evidence. (Awarding him 4 points, while you lose 1).
+* Finally, if you *escape* while the other *cooperates*, the other will go free because of lack of evidence, while there will be a large bounty on you. (Awarding the other 4 points, while you lose 1).
 
 This basically means that: 
 
