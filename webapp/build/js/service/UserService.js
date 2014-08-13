@@ -23,6 +23,15 @@ define([
       }
     });
   };
+  
+  UserService.updateNumNotifications = function (user) {
+    return new Parse.Query(Parse.User)
+      .select(['numNotifications'])
+      .get(user.id)
+      .then(function (usr) {
+        return user.set('numNotifications', usr.get('numNotifications'))
+      });
+  };
 
   UserService.currentWithStats = function () {
     return new Promise(function (res, rej) {

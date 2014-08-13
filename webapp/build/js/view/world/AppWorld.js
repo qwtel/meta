@@ -49,6 +49,10 @@ define([
       });
     },
     
+    fuckThisShit: function () {
+      this.forceUpdate();
+    },
+    
     render: function () {
       var res = null;
 
@@ -64,7 +68,7 @@ define([
             res = ProfilePage({key: Page.Profile, user: this.state.user});
             break;
           case Page.Play:
-            res = PlayPage({key: Page.Play, user: this.state.user});
+            res = PlayPage({key: Page.Play, user: this.state.user, renderParent: this.fuckThisShit});
             break;
           case Page.History:
             res = HistoryPage({key: Page.History, user: this.state.user});
@@ -83,9 +87,11 @@ define([
       }
       */
       
+      var numNotifications  = this.state.user ? this.state.user.get("numNotifications") : 0;
+      
       return (
         React.DOM.div(null, 
-          NavBarView({page: this.props.page, newHistory: 0}), 
+          NavBarView({page: this.props.page, newHistory: numNotifications}), 
           ReactCSSTransitionGroup({transitionName: "carousel"}, 
             res
           )

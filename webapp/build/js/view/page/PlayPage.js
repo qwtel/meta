@@ -20,11 +20,16 @@ define([
         error: false,
         lastGame: null,
         showResult: false,
-        loadingResult: false
+        loadingResult: false,
+        rank: undefined
       };
     },
 
     componentDidMount: function () {
+      UserService.updateNumNotifications(this.props.user).then(function () {
+        this.props.renderParent();
+      }.bind(this));
+      
       if (!this.state.game) {
         this.setState({
           loading: true
@@ -45,6 +50,23 @@ define([
           });
       }
     },
+    
+    // duplicate in profile page
+    getRank: function (statSheet) {
+      var stats = statSheet.toJSON();
+      var ppg = (stats.points / stats.numGames) || 0;
+      return new Parse.Query("RankBound")
+        .greaterThanOrEqualTo('min', ppg)
+        .ascending('min')
+        .first()
+        .then(function (rankBound) {
+          if (rankBound) {
+            return rankBound.get('rank');
+          } else {
+            return 1;
+          }
+        });
+    },
 
     createOnActionClicked: function (action) {
       var self = this;
@@ -64,6 +86,11 @@ define([
           GameService.doAction(self.props.user, self.state.game, action)
             .then(function (res) {
               
+              var user = res[0];
+              self.props.user.set('numNotifications', user.get('numNotifications'));
+              self.props.user.set('updatedAt', user.get('updatedAt'));
+              self.props.renderParent();
+                
               var game = res[1];
               var nextGame = res[2];
 

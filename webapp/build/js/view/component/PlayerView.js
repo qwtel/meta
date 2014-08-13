@@ -5,44 +5,13 @@ define([
   'react'
 ], function (GameState, Action, React) {
   return React.createClass({
-    getInitialState: function () {
-      return {
-        rank: undefined
-      }
-    },
-    
-    getRank: function (statSheet) {
-      var stats = statSheet.toJSON();
-      var ppg = (stats.points / stats.numGames) || 0;
-      return new Parse.Query("RankBound")
-        .greaterThanOrEqualTo('min', ppg)
-        .ascending('min')
-        .first()
-        .then(function (rankBound) {
-          return rankBound.get('rank');
-        });
-    },
-    
-    componentDidMount: function () {
-      if (this.props.calcRank) {
-        var self = this;
-        this.getRank(this.props.user.get('statSheet'))
-          .then(function (rank) {
-            self.setState({
-              rank: rank
-            })
-          });
-      }
-    },
-    
     render: function () {
       var user = this.props.user.toJSON();
 
       var dots = null;
       var statsSheet = this.props.user.get('statSheet');
       var level, rank;
-      if (statsSheet && (level = statsSheet.get('level')) !== undefined && 
-        (rank = this.props.rank || this.state.rank) !== undefined) {
+      if (statsSheet && (level = statsSheet.get('level')) !== undefined &&  (rank = this.props.rank) !== undefined) {
         
         dots = [
           React.DOM.div({key: "level", className: "level dot-pos"}, 

@@ -9,6 +9,10 @@ define([
   'react',
   'moment'
 ], function (UserService, FacebookService, SetStateSilent, PlayerView, Loading, Error, Page, React, Moment) {
+  var Keys = {
+    Enter: 13
+  };
+  
   var BasicView = React.createClass({
     getInitialState: function () {
       return {
@@ -35,6 +39,12 @@ define([
       });
       this.props.onSaveClicked(this.state.firstName, this.state.about);
     },
+    
+    onKeyUp: function (e) {
+      if (e.which === Keys.Enter) {
+        this.onSaveClicked();
+      }
+    },
 
     render: function () {
       var button = null;
@@ -49,11 +59,11 @@ define([
         <div>
           <div className="input-row">
             <label>Name</label>
-            <input type="text" placeholder="Name" ref="firstName" value={this.state.firstName} onChange={this.createOnInputChanged('firstName')} />
+            <input type="text" placeholder="Name" ref="firstName" value={this.state.firstName} onKeyUp={this.onKeyUp} onChange={this.createOnInputChanged('firstName')} />
           </div>
           <div className="input-row">
             <label>Message</label>
-            <input type="text" placeholder="Message" ref="about" value={this.state.about} onChange={this.createOnInputChanged('about')} />
+            <input type="text" placeholder="Message" ref="about" value={this.state.about} onKeyUp={this.onKeyUp} onChange={this.createOnInputChanged('about')} />
           </div>
           {button}
         </div>);
@@ -118,7 +128,8 @@ define([
   });
 
   return React.createClass({
-    
+
+    // duplicate in player view
     getRank: function (statSheet) {
       var stats = statSheet.toJSON();
       var ppg = (stats.points / stats.numGames) || 0;
@@ -127,7 +138,11 @@ define([
         .ascending('min')
         .first()
         .then(function (rankBound) {
-          return rankBound.get('rank');
+          if (rankBound) {
+            return rankBound.get('rank');
+          } else {
+            return 1;
+          }
         });
     },
 

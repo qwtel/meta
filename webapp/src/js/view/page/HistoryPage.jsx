@@ -19,6 +19,8 @@ define([
     },
 
     componentDidMount: function () {
+      this.props.user.save('numNotifications', 0);
+      
       var self = this;
       GameService.getHistory()
         .then(function (games) {

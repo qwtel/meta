@@ -54,6 +54,15 @@ define('service/UserService',[
       }
     });
   };
+  
+  UserService.updateNumNotifications = function (user) {
+    return new Parse.Query(Parse.User)
+      .select(['numNotifications'])
+      .get(user.id)
+      .then(function (usr) {
+        return user.set('numNotifications', usr.get('numNotifications'))
+      });
+  };
 
   UserService.currentWithStats = function () {
     return new Promise(function (res, rej) {
@@ -20728,44 +20737,13 @@ define('view/component/PlayerView',[
   'react'
 ], function (GameState, Action, React) {
   return React.createClass({
-    getInitialState: function () {
-      return {
-        rank: undefined
-      }
-    },
-    
-    getRank: function (statSheet) {
-      var stats = statSheet.toJSON();
-      var ppg = (stats.points / stats.numGames) || 0;
-      return new Parse.Query("RankBound")
-        .greaterThanOrEqualTo('min', ppg)
-        .ascending('min')
-        .first()
-        .then(function (rankBound) {
-          return rankBound.get('rank');
-        });
-    },
-    
-    componentDidMount: function () {
-      if (this.props.calcRank) {
-        var self = this;
-        this.getRank(this.props.user.get('statSheet'))
-          .then(function (rank) {
-            self.setState({
-              rank: rank
-            })
-          });
-      }
-    },
-    
     render: function () {
       var user = this.props.user.toJSON();
 
       var dots = null;
       var statsSheet = this.props.user.get('statSheet');
       var level, rank;
-      if (statsSheet && (level = statsSheet.get('level')) !== undefined && 
-        (rank = this.props.rank || this.state.rank) !== undefined) {
+      if (statsSheet && (level = statsSheet.get('level')) !== undefined &&  (rank = this.props.rank) !== undefined) {
         
         dots = [
           React.DOM.div({key: "level", className: "level dot-pos"}, 
@@ -20883,6 +20861,10 @@ define('view/page/ProfilePage',[
   'react',
   'moment'
 ], function (UserService, FacebookService, SetStateSilent, PlayerView, Loading, Error, Page, React, Moment) {
+  var Keys = {
+    Enter: 13
+  };
+  
   var BasicView = React.createClass({displayName: 'BasicView',
     getInitialState: function () {
       return {
@@ -20909,6 +20891,12 @@ define('view/page/ProfilePage',[
       });
       this.props.onSaveClicked(this.state.firstName, this.state.about);
     },
+    
+    onKeyUp: function (e) {
+      if (e.which === Keys.Enter) {
+        this.onSaveClicked();
+      }
+    },
 
     render: function () {
       var button = null;
@@ -20923,11 +20911,11 @@ define('view/page/ProfilePage',[
         React.DOM.div(null, 
           React.DOM.div({className: "input-row"}, 
             React.DOM.label(null, "Name"), 
-            React.DOM.input({type: "text", placeholder: "Name", ref: "firstName", value: this.state.firstName, onChange: this.createOnInputChanged('firstName')})
+            React.DOM.input({type: "text", placeholder: "Name", ref: "firstName", value: this.state.firstName, onKeyUp: this.onKeyUp, onChange: this.createOnInputChanged('firstName')})
           ), 
           React.DOM.div({className: "input-row"}, 
             React.DOM.label(null, "Message"), 
-            React.DOM.input({type: "text", placeholder: "Message", ref: "about", value: this.state.about, onChange: this.createOnInputChanged('about')})
+            React.DOM.input({type: "text", placeholder: "Message", ref: "about", value: this.state.about, onKeyUp: this.onKeyUp, onChange: this.createOnInputChanged('about')})
           ), 
           button
         ));
@@ -20992,7 +20980,8 @@ define('view/page/ProfilePage',[
   });
 
   return React.createClass({
-    
+
+    // duplicate in player view
     getRank: function (statSheet) {
       var stats = statSheet.toJSON();
       var ppg = (stats.points / stats.numGames) || 0;
@@ -21001,7 +20990,11 @@ define('view/page/ProfilePage',[
         .ascending('min')
         .first()
         .then(function (rankBound) {
-          return rankBound.get('rank');
+          if (rankBound) {
+            return rankBound.get('rank');
+          } else {
+            return 1;
+          }
         });
     },
 
@@ -21402,6 +21395,8 @@ define('view/page/HistoryPage',[
     },
 
     componentDidMount: function () {
+      this.props.user.save('numNotifications', 0);
+      
       var self = this;
       GameService.getHistory()
         .then(function (games) {
@@ -21470,11 +21465,16 @@ define('view/page/PlayPage',[
         error: false,
         lastGame: null,
         showResult: false,
-        loadingResult: false
+        loadingResult: false,
+        rank: undefined
       };
     },
 
     componentDidMount: function () {
+      UserService.updateNumNotifications(this.props.user).then(function () {
+        this.props.renderParent();
+      }.bind(this));
+      
       if (!this.state.game) {
         this.setState({
           loading: true
@@ -21495,6 +21495,23 @@ define('view/page/PlayPage',[
           });
       }
     },
+    
+    // duplicate in profile page
+    getRank: function (statSheet) {
+      var stats = statSheet.toJSON();
+      var ppg = (stats.points / stats.numGames) || 0;
+      return new Parse.Query("RankBound")
+        .greaterThanOrEqualTo('min', ppg)
+        .ascending('min')
+        .first()
+        .then(function (rankBound) {
+          if (rankBound) {
+            return rankBound.get('rank');
+          } else {
+            return 1;
+          }
+        });
+    },
 
     createOnActionClicked: function (action) {
       var self = this;
@@ -21514,6 +21531,11 @@ define('view/page/PlayPage',[
           GameService.doAction(self.props.user, self.state.game, action)
             .then(function (res) {
               
+              var user = res[0];
+              self.props.user.set('numNotifications', user.get('numNotifications'));
+              self.props.user.set('updatedAt', user.get('updatedAt'));
+              self.props.renderParent();
+                
               var game = res[1];
               var nextGame = res[2];
 
@@ -21697,6 +21719,10 @@ define('view/world/AppWorld',[
       });
     },
     
+    fuckThisShit: function () {
+      this.forceUpdate();
+    },
+    
     render: function () {
       var res = null;
 
@@ -21712,7 +21738,7 @@ define('view/world/AppWorld',[
             res = ProfilePage({key: Page.Profile, user: this.state.user});
             break;
           case Page.Play:
-            res = PlayPage({key: Page.Play, user: this.state.user});
+            res = PlayPage({key: Page.Play, user: this.state.user, renderParent: this.fuckThisShit});
             break;
           case Page.History:
             res = HistoryPage({key: Page.History, user: this.state.user});
@@ -21731,9 +21757,11 @@ define('view/world/AppWorld',[
       }
       */
       
+      var numNotifications  = this.state.user ? this.state.user.get("numNotifications") : 0;
+      
       return (
         React.DOM.div(null, 
-          NavBarView({page: this.props.page, newHistory: 0}), 
+          NavBarView({page: this.props.page, newHistory: numNotifications}), 
           ReactCSSTransitionGroup({transitionName: "carousel"}, 
             res
           )
