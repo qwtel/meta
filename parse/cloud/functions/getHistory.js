@@ -26,7 +26,7 @@ function getHistory(req) {
       .include('player2')
       .skip(10 * (page - 1))
       .limit(10 * page)
-      .descending("createdAt")
+      .descending("updatedAt")
       .find()
   });
 }

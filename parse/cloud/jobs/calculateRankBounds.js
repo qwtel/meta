@@ -52,6 +52,7 @@ function calculateRankBounds(req, status) {
   });
 }
 
+// duplicate in doBotMoves
 function logError(error) {
   function helper(error) {
     if (error.message) {

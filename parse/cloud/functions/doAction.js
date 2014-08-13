@@ -1,12 +1,10 @@
-var withMasterKey = require('cloud/helper/withMasterKey.js');
+var withMasterKey = require('cloud/helper/withMasterKey');
 
 var newGame = require('cloud/functions/newGame.js');
+var doSecondMove = require('cloud/functions/doSecondMove.js');
 
-var Action = require('cloud/enum/Action.js');
-var GameState = require('cloud/enum/GameState.js');
-
-var GameLogic = require('cloud/logic/GameLogic.js');
-var LevelLogic = require('cloud/logic/LevelLogic.js');
+var Action = require('cloud/enum/Action');
+var GameState = require('cloud/enum/GameState');
 
 function doFirstMove(user, move, game, userNum) {
   game.set('move' + userNum, move);
@@ -24,80 +22,6 @@ function doFirstMove(user, move, game, userNum) {
     .then(function (game, user) {
       return [game, user];
     });
-}
-
-function doSecondMove(user, move, game, userNum) {
-  game.set('move' + userNum, move);
-  var updatedGamePromise = game.save({
-    state: GameState.GameOver
-  });
-
-  var player1 = game.get('player1');
-  var player2 = game.get('player2');
-  
-  var move1 = userNum === 1 ? move : game.get('move1');
-  var move2 = userNum === 2 ? move : game.get('move2');
-
-  var logic = new GameLogic(move1, move2);
-
-  var updatedPlayer1Promise = updatePlayer(player1, game, logic.result1(), move1);
-  var updatedPlayer2Promise = updatePlayer(player2, game, logic.result2(), move2);
-
-  return Parse.Promise.when(updatedPlayer1Promise, updatedPlayer2Promise, updatedGamePromise)
-    .then(function (player1, player2, game) {
-      return [game, (player1.id === user.id ? player1 : player2)];
-    });
-}
-
-function updateStats(statSheet, result, move) {
-  var stats = statSheet.toJSON();
-
-  function add(name, by) {
-    var v = stats[name] + by;
-    statSheet.set(name, v);
-    return v;
-  }
-
-  function inc(name) {
-    return add(name, 1)
-  }
-
-  switch (move) {
-    case Action.Cooperate: inc('numCoop'); break;
-    case Action.Pass: inc('numPass'); break;
-    case Action.Defect: inc('numDefect'); break;
-  }
-
-  var points = add('points', result);
-  var numGames = inc('numGames');
-
-  if (LevelLogic.isLevelUp(points, stats.level)) {
-    inc('level');
-  }
-
-  // TODO: score, ranking
-  
-  var obj = {
-    numGames: numGames,
-    points: points,
-    ppg: points / numGames
-  };
-  
-  //console.log(obj);
-  
-  return statSheet.save(obj);
-}
-
-function updatePlayer(player, game, result, move) {
-  console.log(player);
-  
-  var statSheetPromise = updateStats(player.get('statSheet'), result, move);
-  
-  if (player.get("queuedGames")) {
-    player.remove('queuedGames', game);
-  }
-  
-  return Parse.Promise.when(player.save(), statSheetPromise);
 }
 
 function doAction(req) {

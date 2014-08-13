@@ -1,16 +1,17 @@
-var beforeSavePlayer = require('cloud/functions/beforeSavePlayer.js');
-var afterSavePlayer = require('cloud/functions/afterSavePlayer.js');
+var beforeSavePlayer = require('cloud/functions/beforeSavePlayer');
+var afterSavePlayer = require('cloud/functions/afterSavePlayer');
 
-var getGame = require('cloud/functions/getGame.js');
-var doAction = require('cloud/functions/doAction.js');
-var getHistory = require('cloud/functions/getHistory.js');
-var resetStats = require('cloud/functions/resetStats.js');
+var getGame = require('cloud/functions/getGame');
+var doAction = require('cloud/functions/doAction');
+var getHistory = require('cloud/functions/getHistory');
+var resetStats = require('cloud/functions/resetStats');
 
-var initBots = require('cloud/functions/admin/initBots.js');
-var resetCurrentGame = require('cloud/functions/admin/resetCurrentGame.js');
+var initBots = require('cloud/functions/admin/initBots');
+var resetCurrentGame = require('cloud/functions/admin/resetCurrentGame');
 var initLinearRanks = require('cloud/functions/admin/initLinearRanks');
 
 var calculateRankBounds = require('cloud/jobs/calculateRankBounds');
+var doBotMoves = require('cloud/jobs/doBotMoves');
 
 var Bot = Parse.Object.extend("Bot");
 
@@ -51,3 +52,4 @@ Parse.Cloud.define("initLinearRanks", sendResponse(initLinearRanks));
 
 // Background jobs
 Parse.Cloud.job('calculateRankBounds', calculateRankBounds);
+Parse.Cloud.job('doBotMoves', doBotMoves);
